@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../utils/app_localizations.dart';
+import '../widgets/stars_display.dart';
 
 class ProgressScreen extends StatefulWidget {
   final String currentLanguage;
@@ -18,6 +19,7 @@ class _ProgressScreenState extends State<ProgressScreen> {
   Map<int, Map<String, dynamic>> levelProgress = {};
   int totalScore = 0;
   int completedLevels = 0;
+  int totalStars = 0;
 
   @override
   void initState() {
@@ -29,24 +31,29 @@ class _ProgressScreenState extends State<ProgressScreen> {
     final prefs = await SharedPreferences.getInstance();
     int score = 0;
     int completed = 0;
+    int stars = 0;
     
     for (int i = 1; i <= 500; i++) {
       int? levelScore = prefs.getInt('level_${i}_score');
       int? levelTime = prefs.getInt('level_${i}_time');
+      int? levelStars = prefs.getInt('level_${i}_stars');
       
       if (levelScore != null) {
         levelProgress[i] = {
           'score': levelScore,
           'time': levelTime ?? 0,
+          'stars': levelStars ?? 1,
         };
         score += levelScore;
         completed++;
+        stars += (levelStars ?? 1);
       }
     }
     
     setState(() {
       totalScore = score;
       completedLevels = completed;
+      totalStars = stars;
     });
   }
 
@@ -121,6 +128,12 @@ class _ProgressScreenState extends State<ProgressScreen> {
                     label: local.translate('totalScore'),
                     value: '$totalScore',
                     color: Colors.amber,
+                  ),
+                  _ProgressStatBox(
+                    icon: Icons.star,
+                    label: 'Toplam Yıldız',
+                    value: '$totalStars',
+                    color: Colors.orange,
                   ),
                   _ProgressStatBox(
                     icon: Icons.check_circle,
@@ -225,15 +238,26 @@ class _ProgressScreenState extends State<ProgressScreen> {
                             ),
                             subtitle: Padding(
                               padding: const EdgeInsets.only(top: 8),
-                              child: Row(
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
                                 children: [
-                                  Icon(Icons.emoji_events, size: 16, color: Colors.amber),
-                                  const SizedBox(width: 4),
-                                  Text('${data['score']} ${local.translate('points').toLowerCase()}'),
-                                  const SizedBox(width: 16),
-                                  Icon(Icons.timer, size: 16, color: Colors.blue),
-                                  const SizedBox(width: 4),
-                                  Text(_formatTime(data['time'])),
+                                  StarsDisplay(
+                                    stars: data['stars'] ?? 1,
+                                    size: 18,
+                                    showCircle: false,
+                                  ),
+                                  const SizedBox(height: 8),
+                                  Row(
+                                    children: [
+                                      Icon(Icons.emoji_events, size: 16, color: Colors.amber),
+                                      const SizedBox(width: 4),
+                                      Text('${data['score']} ${local.translate('points').toLowerCase()}'),
+                                      const SizedBox(width: 16),
+                                      Icon(Icons.timer, size: 16, color: Colors.blue),
+                                      const SizedBox(width: 4),
+                                      Text(_formatTime(data['time'])),
+                                    ],
+                                  ),
                                 ],
                               ),
                             ),

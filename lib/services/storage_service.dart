@@ -66,4 +66,31 @@ class StorageService {
     
     return times;
   }
+
+  // Yıldız kaydet
+  static Future<void> saveLevelStars(int level, int stars) async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setInt('level_${level}_stars', stars);
+  }
+
+  // Yıldız al
+  static Future<int?> getLevelStars(int level) async {
+    final prefs = await SharedPreferences.getInstance();
+    return prefs.getInt('level_${level}_stars');
+  }
+
+  // Tüm yıldızları al
+  static Future<Map<int, int>> getAllLevelStars() async {
+    final prefs = await SharedPreferences.getInstance();
+    Map<int, int> stars = {};
+    
+    for (int i = 1; i <= 500; i++) {
+      int? star = prefs.getInt('level_${i}_stars');
+      if (star != null) {
+        stars[i] = star;
+      }
+    }
+    
+    return stars;
+  }
 }

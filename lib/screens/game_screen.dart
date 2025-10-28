@@ -2,9 +2,11 @@ import 'package:flutter/material.dart';
 import 'dart:math';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../utils/app_localizations.dart';
+import '../services/storage_service.dart';
 import '../widgets/stat_box.dart';
 import '../widgets/number_button.dart';
 import '../widgets/action_button.dart';
+import '../widgets/stars_display.dart';
 
 class SudokuGameScreen extends StatefulWidget {
   final int level;
@@ -234,6 +236,26 @@ class _SudokuGameScreenState extends State<SudokuGameScreen> {
     }
   }
 
+  int _calculateStars() {
+    // Zorluk seviyesine göre yıldız limitleri
+    Map<String, List<int>> starLimits = {
+      'easy': [300, 600],
+      'kolay': [300, 600],
+      'medium': [500, 1000],
+      'orta': [500, 1000],
+      'hard': [700, 1400],
+      'zor': [700, 1400],
+      'expert': [1000, 2000],
+      'uzman': [1000, 2000],
+    };
+
+    List<int> limits = starLimits[widget.difficulty.toLowerCase()] ?? [500, 1000];
+
+    if (score >= limits[1]) return 3; // 3 Yıldız
+    if (score >= limits[0]) return 2; // 2 Yıldız
+    return 1; // 1 Yıldız
+  }
+
   Future<void> _saveProgress() async {
     final prefs = await SharedPreferences.getInstance();
     
@@ -245,6 +267,10 @@ class _SudokuGameScreenState extends State<SudokuGameScreen> {
     if (existingScore == null || score > existingScore) {
       await prefs.setInt('level_${widget.level}_score', score);
       await prefs.setInt('level_${widget.level}_time', timeInSeconds);
+      
+      // Yıldızları kaydet
+      int stars = _calculateStars();
+      await StorageService.saveLevelStars(widget.level, stars);
     }
     
     int currentUnlocked = prefs.getInt('unlockedLevel') ?? 1;
@@ -291,6 +317,7 @@ class _SudokuGameScreenState extends State<SudokuGameScreen> {
     Duration elapsed = DateTime.now().difference(startTime);
     int minutes = elapsed.inMinutes;
     int seconds = elapsed.inSeconds % 60;
+    int stars = _calculateStars();
     
     showDialog(
       context: context,
@@ -299,54 +326,82 @@ class _SudokuGameScreenState extends State<SudokuGameScreen> {
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
         title: Column(
           children: [
-            Icon(Icons.emoji_events, size: 60, color: Colors.amber),
-            const SizedBox(height: 10),
+            Text(
+              '${local.translate('level')} ${widget.level}',
+              style: TextStyle(
+                fontSize: 32,
+                fontWeight: FontWeight.bold,
+                color: difficultyColor,
+              ),
+            ),
+            const SizedBox(height: 20),
+            // Büyük Yıldız Gösterimi
+            BigStarsDisplay(stars: stars),
+            const SizedBox(height: 20),
             Text(
               local.translate('congratulations'),
-              style: TextStyle(color: difficultyColor, fontWeight: FontWeight.bold),
+              style: TextStyle(
+                color: difficultyColor, 
+                fontWeight: FontWeight.bold,
+                fontSize: 20,
+              ),
             ),
           ],
         ),
         content: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            Text('${local.translate('level')} ${widget.level} ${local.translate('levelCompleted')}', textAlign: TextAlign.center),
-            const SizedBox(height: 20),
             Container(
-              padding: const EdgeInsets.all(16),
+              padding: const EdgeInsets.all(20),
               decoration: BoxDecoration(
                 color: difficultyColor.withOpacity(0.1),
-                borderRadius: BorderRadius.circular(12),
+                borderRadius: BorderRadius.circular(16),
               ),
               child: Column(
                 children: [
+                  // SCORE - Büyük ve belirgin
+                  Text(
+                    '${local.translate('score').toUpperCase()}:',
+                    style: TextStyle(
+                      fontSize: 16,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.grey.shade700,
+                    ),
+                  ),
+                  const SizedBox(height: 8),
+                  Text(
+                    '$score',
+                    style: TextStyle(
+                      fontSize: 48,
+                      fontWeight: FontWeight.bold,
+                      color: difficultyColor,
+                      letterSpacing: 2,
+                    ),
+                  ),
+                  const SizedBox(height: 20),
+                  Divider(color: Colors.grey.shade300),
+                  const SizedBox(height: 12),
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
-                      Text('${local.translate('points')}:', style: TextStyle(fontWeight: FontWeight.bold)),
-                      Text('$score', style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: difficultyColor)),
+                      Text('${local.translate('time')}:', style: TextStyle(fontSize: 14)),
+                      Text('${minutes}m ${seconds}s', style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold)),
                     ],
                   ),
                   const SizedBox(height: 8),
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
-                      Text('${local.translate('time')}:'),
-                      Text('${minutes}m ${seconds}s'),
+                      Text('${local.translate('errors')}:', style: TextStyle(fontSize: 14)),
+                      Text('$mistakes', style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold)),
                     ],
                   ),
+                  const SizedBox(height: 8),
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
-                      Text('${local.translate('errors')}:'),
-                      Text('$mistakes'),
-                    ],
-                  ),
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      Text('${local.translate('hints')}:'),
-                      Text('$hintsUsed'),
+                      Text('${local.translate('hints')}:', style: TextStyle(fontSize: 14)),
+                      Text('$hintsUsed', style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold)),
                     ],
                   ),
                 ],
@@ -360,12 +415,13 @@ class _SudokuGameScreenState extends State<SudokuGameScreen> {
               Navigator.pop(context);
               Navigator.pop(context, true);
             },
-            child: Text(local.translate('levelSelection'), style: TextStyle(color: difficultyColor)),
+            child: Text(local.translate('levelSelection'), style: TextStyle(color: Colors.grey.shade600)),
           ),
           ElevatedButton(
             style: ElevatedButton.styleFrom(
               backgroundColor: difficultyColor,
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+              padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
             ),
             onPressed: () {
               Navigator.pop(context);
@@ -384,7 +440,14 @@ class _SudokuGameScreenState extends State<SudokuGameScreen> {
                 Navigator.pop(context, true);
               }
             },
-            child: Text(local.translate('nextLevel'), style: TextStyle(color: Colors.white)),
+            child: Text(
+              local.translate('nextLevel'), 
+              style: TextStyle(
+                color: Colors.white,
+                fontSize: 16,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
           ),
         ],
       ),

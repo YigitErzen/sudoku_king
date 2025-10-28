@@ -4,6 +4,7 @@ import '../widgets/menu_button.dart';
 import '../widgets/language_button.dart';
 import 'level_select_screen.dart';
 import 'progress_screen.dart';
+import 'how_to_play_screen.dart';
 
 class MainMenuScreen extends StatelessWidget {
   final String currentLanguage;
@@ -133,6 +134,22 @@ class MainMenuScreen extends StatelessWidget {
                           context,
                           MaterialPageRoute(
                             builder: (context) => ProgressScreen(
+                              currentLanguage: currentLanguage,
+                            ),
+                          ),
+                        );
+                      },
+                    ),
+                    const SizedBox(height: 20),
+                    MenuButton(
+                      icon: Icons.help_outline,
+                      label: currentLanguage == 'tr' ? 'NASIL OYNANIR' : 'HOW TO PLAY',
+                      color: Colors.blue,
+                      onTap: () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) => HowToPlayScreen(
                               currentLanguage: currentLanguage,
                             ),
                           ),
