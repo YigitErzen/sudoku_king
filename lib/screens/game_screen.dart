@@ -14,11 +14,11 @@ class SudokuGameScreen extends StatefulWidget {
   final String currentLanguage;
 
   const SudokuGameScreen({
-    Key? key,
+    super.key,
     required this.level,
     required this.difficulty,
     required this.currentLanguage,
-  }) : super(key: key);
+  });
 
   @override
   State<SudokuGameScreen> createState() => _SudokuGameScreenState();
@@ -214,46 +214,80 @@ class _SudokuGameScreenState extends State<SudokuGameScreen> {
     Duration elapsed = DateTime.now().difference(startTime);
     int timeInSeconds = elapsed.inSeconds;
     
-    int targetTime = switch (widget.difficulty.toLowerCase()) {
-      'easy' || 'kolay' => 300,
-      'medium' || 'orta' => 600,
-      'hard' || 'zor' => 900,
-      'expert' || 'uzman' => 1200,
-      _ => 600,
+    // Zorluk çarpanı - her zorluk farklı base puan
+    int difficultyMultiplier = switch (widget.difficulty.toLowerCase()) {
+      'easy' || 'kolay' => 100,
+      'medium' || 'orta' => 150,
+      'hard' || 'zor' => 200,
+      'expert' || 'uzman' => 250,
+      _ => 150,
     };
     
+    // Base puan - zorluk bazlı
+    score = difficultyMultiplier;
+    
+    // Hedef süre - zorluk bazlı (dakika cinsinden)
+    int targetTime = switch (widget.difficulty.toLowerCase()) {
+      'easy' || 'kolay' => 180,    // 3 dakika
+      'medium' || 'orta' => 300,   // 5 dakika
+      'hard' || 'zor' => 480,      // 8 dakika
+      'expert' || 'uzman' => 600,  // 10 dakika
+      _ => 300,
+    };
+    
+    // SÜRE BONUSU - Hızlı bitirme ödülü (BÜYÜK ETKİ!)
     if (timeInSeconds < targetTime) {
-      int timeBonus = ((targetTime - timeInSeconds) * 2).round();
+      int timeBonus = ((targetTime - timeInSeconds) * 5).round(); // 5x çarpan!
       score += timeBonus;
+    } else {
+      // Yavaş bitirme cezası
+      int penalty = ((timeInSeconds - targetTime) * 2).round();
+      score = (score - penalty).clamp(50, score); // Minimum 50 puan
     }
     
+    // HATASIZ BONUS - BÜYÜK ÖDÜL!
     if (mistakes == 0) {
-      score += 500;
+      score += 800; // 500'den 800'e çıktı!
+    } else if (mistakes == 1) {
+      score += 300; // 1 hata için küçük bonus
+    }
+    // 2-3 hata: bonus yok
+    
+    // İPUCUSUZ BONUS - BÜYÜK ÖDÜL!
+    if (hintsUsed == 0) {
+      score += 500; // 300'den 500'e çıktı!
+    } else if (hintsUsed == 1) {
+      score += 200; // 1 ipucu için küçük bonus
+    }
+    // 2-3 ipucu: bonus yok
+    
+    // MÜKEMMELLİK BONUSU - Hem hatasız hem ipucusuz!
+    if (mistakes == 0 && hintsUsed == 0) {
+      score += 500; // Ekstra 500 puan!
     }
     
-    if (hintsUsed == 0) {
-      score += 300;
-    }
+    // Minimum puan garantisi
+    score = score.clamp(50, 10000);
   }
 
   int _calculateStars() {
-    // Zorluk seviyesine göre yıldız limitleri
+    // Zorluk seviyesine göre yıldız limitleri - ÇOK DAHA ZOR!
     Map<String, List<int>> starLimits = {
-      'easy': [300, 600],
-      'kolay': [300, 600],
-      'medium': [500, 1000],
-      'orta': [500, 1000],
-      'hard': [700, 1400],
-      'zor': [700, 1400],
-      'expert': [1000, 2000],
-      'uzman': [1000, 2000],
+      'easy': [500, 1000],      // Kolay: 500+ = 2 yıldız, 1000+ = 3 yıldız
+      'kolay': [500, 1000],
+      'medium': [800, 1500],    // Orta: 800+ = 2 yıldız, 1500+ = 3 yıldız
+      'orta': [800, 1500],
+      'hard': [1000, 2000],     // Zor: 1000+ = 2 yıldız, 2000+ = 3 yıldız
+      'zor': [1000, 2000],
+      'expert': [1500, 2500],   // Uzman: 1500+ = 2 yıldız, 2500+ = 3 yıldız
+      'uzman': [1500, 2500],
     };
 
-    List<int> limits = starLimits[widget.difficulty.toLowerCase()] ?? [500, 1000];
+    List<int> limits = starLimits[widget.difficulty.toLowerCase()] ?? [800, 1500];
 
-    if (score >= limits[1]) return 3; // 3 Yıldız
-    if (score >= limits[0]) return 2; // 2 Yıldız
-    return 1; // 1 Yıldız
+    if (score >= limits[1]) return 3; // 3 Yıldız - ÇOK ZOR!
+    if (score >= limits[0]) return 2; // 2 Yıldız - ORTA
+    return 1; // 1 Yıldız - KOLAY
   }
 
   Future<void> _saveProgress() async {

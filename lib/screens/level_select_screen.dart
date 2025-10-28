@@ -9,9 +9,9 @@ class LevelSelectScreen extends StatefulWidget {
   final String currentLanguage;
 
   const LevelSelectScreen({
-    Key? key,
+    super.key,
     required this.currentLanguage,
-  }) : super(key: key);
+  });
 
   @override
   State<LevelSelectScreen> createState() => _LevelSelectScreenState();

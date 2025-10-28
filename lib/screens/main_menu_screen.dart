@@ -11,10 +11,10 @@ class MainMenuScreen extends StatelessWidget {
   final Function(String) onLanguageChange;
 
   const MainMenuScreen({
-    Key? key,
+    super.key,
     required this.currentLanguage,
     required this.onLanguageChange,
-  }) : super(key: key);
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -73,35 +73,45 @@ class MainMenuScreen extends StatelessWidget {
                       },
                       child: Column(
                         children: [
-                          Icon(
-                            Icons.grid_4x4,
-                            size: 100,
-                            color: Colors.white,
+                          // Logo
+                          Container(
+                            padding: const EdgeInsets.all(15),
+                            decoration: BoxDecoration(
+                              color: Colors.white.withOpacity(0.15),
+                              borderRadius: BorderRadius.circular(30),
+                              boxShadow: [
+                                BoxShadow(
+                                  color: Colors.black.withOpacity(0.3),
+                                  blurRadius: 20,
+                                  offset: const Offset(0, 10),
+                                ),
+                              ],
+                            ),
+                            child: ClipRRect(
+                              borderRadius: BorderRadius.circular(20),
+                              child: Image.asset(
+                                'assets/images/app_icon2.png',
+                                width: 180,
+                                height: 180,
+                                fit: BoxFit.contain,
+                              ),
+                            ),
                           ),
-                          const SizedBox(height: 20),
+                          const SizedBox(height: 30),
                           Text(
-                            local.translate('title'),
+                            '500 Epic Levels',
                             style: TextStyle(
-                              fontSize: 48,
-                              fontWeight: FontWeight.bold,
-                              color: Colors.white,
+                              fontSize: 20,
+                              color: Colors.white.withOpacity(0.95),
                               letterSpacing: 2,
+                              fontWeight: FontWeight.w600,
                               shadows: [
                                 Shadow(
-                                  blurRadius: 10,
+                                  blurRadius: 8,
                                   color: Colors.black45,
                                   offset: Offset(2, 2),
                                 ),
                               ],
-                            ),
-                          ),
-                          const SizedBox(height: 10),
-                          Text(
-                            local.translate('subtitle'),
-                            style: TextStyle(
-                              fontSize: 18,
-                              color: Colors.white.withOpacity(0.9),
-                              letterSpacing: 1,
                             ),
                           ),
                         ],

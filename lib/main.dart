@@ -7,7 +7,7 @@ void main() {
 }
 
 class SudokuQuestApp extends StatefulWidget {
-  const SudokuQuestApp({Key? key}) : super(key: key);
+  const SudokuQuestApp({super.key});
 
   @override
   State<SudokuQuestApp> createState() => _SudokuQuestAppState();

@@ -6,11 +6,11 @@ class StarsDisplay extends StatelessWidget {
   final bool showCircle;
 
   const StarsDisplay({
-    Key? key,
+    super.key,
     required this.stars,
     this.size = 20,
     this.showCircle = true,
-  }) : super(key: key);
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -67,9 +67,9 @@ class BigStarsDisplay extends StatelessWidget {
   final int stars;
 
   const BigStarsDisplay({
-    Key? key,
+    super.key,
     required this.stars,
-  }) : super(key: key);
+  });
 
   @override
   Widget build(BuildContext context) {

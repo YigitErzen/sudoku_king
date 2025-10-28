@@ -5,9 +5,9 @@ class HowToPlayScreen extends StatelessWidget {
   final String currentLanguage;
 
   const HowToPlayScreen({
-    Key? key,
+    super.key,
     required this.currentLanguage,
-  }) : super(key: key);
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -104,8 +104,7 @@ class HowToPlayScreen extends StatelessWidget {
                         ),
                         const SizedBox(height: 16),
 
-                        _RuleCard(
-                          number: '1',
+                        _SimpleRuleCard(
                           title: isTurkish ? 'Satır Kuralı' : 'Row Rule',
                           description: isTurkish
                             ? 'Her satırda 1\'den 9\'a kadar her sayı sadece bir kez bulunmalı.'
@@ -114,8 +113,7 @@ class HowToPlayScreen extends StatelessWidget {
                           color: Colors.green,
                         ),
 
-                        _RuleCard(
-                          number: '2',
+                        _SimpleRuleCard(
                           title: isTurkish ? 'Sütun Kuralı' : 'Column Rule',
                           description: isTurkish
                             ? 'Her sütunda 1\'den 9\'a kadar her sayı sadece bir kez bulunmalı.'
@@ -124,8 +122,7 @@ class HowToPlayScreen extends StatelessWidget {
                           color: Colors.orange,
                         ),
 
-                        _RuleCard(
-                          number: '3',
+                        _SimpleRuleCard(
                           title: isTurkish ? '3x3 Kare Kuralı' : '3x3 Square Rule',
                           description: isTurkish
                             ? 'Her 3x3\'lük küçük karede 1\'den 9\'a kadar her sayı sadece bir kez bulunmalı.'
@@ -193,57 +190,27 @@ class HowToPlayScreen extends StatelessWidget {
                           icon: Icons.check_circle,
                           title: isTurkish ? 'Hatasız Bonus' : 'No Mistake Bonus',
                           description: isTurkish
-                            ? 'Hata yapmazsanız +500 puan!'
-                            : 'No mistakes = +500 points!',
+                            ? 'Hata yapmazsanız +800 puan!'
+                            : 'No mistakes = +800 points!',
                         ),
 
                         _ScoreCard(
                           icon: Icons.lightbulb_outline,
                           title: isTurkish ? 'İpucusuz Bonus' : 'No Hint Bonus',
                           description: isTurkish
-                            ? 'İpucu kullanmazsanız +300 puan!'
-                            : 'No hints used = +300 points!',
+                            ? 'İpucu kullanmazsanız +500 puan!'
+                            : 'No hints used = +500 points!',
+                        ),
+
+                        _ScoreCard(
+                          icon: Icons.auto_awesome,
+                          title: isTurkish ? 'Mükemmellik Bonusu' : 'Perfection Bonus',
+                          description: isTurkish
+                            ? 'Hem hatasız hem ipucusuz: +500 EKSTRA!'
+                            : 'No mistakes + No hints: +500 EXTRA!',
                         ),
 
                         const SizedBox(height: 24),
-
-                        // Zorluk Seviyeleri
-                        _TitleCard(
-                          icon: Icons.trending_up,
-                          title: isTurkish ? 'ZORLUK SEVİYELERİ' : 'DIFFICULTY LEVELS',
-                          color: Colors.deepOrange,
-                        ),
-                        const SizedBox(height: 16),
-
-                        _DifficultyCard(
-                          title: isTurkish ? 'Kolay (1-125)' : 'Easy (1-125)',
-                          description: isTurkish ? 'Yeni başlayanlar için' : 'For beginners',
-                          color: Colors.green,
-                          emptyCount: '35',
-                        ),
-
-                        _DifficultyCard(
-                          title: isTurkish ? 'Orta (126-250)' : 'Medium (126-250)',
-                          description: isTurkish ? 'Biraz düşünme gerektirir' : 'Requires some thinking',
-                          color: Colors.orange,
-                          emptyCount: '45',
-                        ),
-
-                        _DifficultyCard(
-                          title: isTurkish ? 'Zor (251-375)' : 'Hard (251-375)',
-                          description: isTurkish ? 'Deneyimli oyuncular için' : 'For experienced players',
-                          color: Colors.red,
-                          emptyCount: '52',
-                        ),
-
-                        _DifficultyCard(
-                          title: isTurkish ? 'Uzman (376-500)' : 'Expert (376-500)',
-                          description: isTurkish ? 'Sadece ustalar için!' : 'Masters only!',
-                          color: Colors.purple,
-                          emptyCount: '58',
-                        ),
-
-                        const SizedBox(height: 32),
 
                         // Başla Butonu
                         Container(
@@ -367,6 +334,79 @@ class _DescriptionCard extends StatelessWidget {
           height: 1.5,
           color: Colors.grey.shade800,
         ),
+      ),
+    );
+  }
+}
+
+class _SimpleRuleCard extends StatelessWidget {
+  final String title;
+  final String description;
+  final IconData icon;
+  final Color color;
+
+  const _SimpleRuleCard({
+    required this.title,
+    required this.description,
+    required this.icon,
+    required this.color,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      margin: const EdgeInsets.only(bottom: 16),
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(16),
+        boxShadow: [
+          BoxShadow(
+            color: color.withOpacity(0.1),
+            blurRadius: 8,
+            offset: const Offset(0, 4),
+          ),
+        ],
+      ),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Container(
+            padding: const EdgeInsets.all(12),
+            decoration: BoxDecoration(
+              gradient: LinearGradient(
+                colors: [color, color.withOpacity(0.7)],
+              ),
+              borderRadius: BorderRadius.circular(12),
+            ),
+            child: Icon(icon, color: Colors.white, size: 28),
+          ),
+          const SizedBox(width: 16),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  title,
+                  style: TextStyle(
+                    fontSize: 18,
+                    fontWeight: FontWeight.bold,
+                    color: color,
+                  ),
+                ),
+                const SizedBox(height: 8),
+                Text(
+                  description,
+                  style: TextStyle(
+                    fontSize: 14,
+                    color: Colors.grey.shade700,
+                    height: 1.4,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
       ),
     );
   }

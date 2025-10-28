@@ -7,9 +7,9 @@ class ProgressScreen extends StatefulWidget {
   final String currentLanguage;
 
   const ProgressScreen({
-    Key? key,
+    super.key,
     required this.currentLanguage,
-  }) : super(key: key);
+  });
 
   @override
   State<ProgressScreen> createState() => _ProgressScreenState();
