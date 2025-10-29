@@ -29,11 +29,13 @@ class _SudokuGameScreenState extends State<SudokuGameScreen> {
   late List<List<int>> solution;
   late List<List<bool>> editable;
   late List<List<bool>> isCorrect;
+  late List<List<bool>> isHint;
   int selectedRow = -1;
   int selectedCol = -1;
   int score = 0;
   int mistakes = 0;
   int hintsUsed = 0;
+  int extraHints = 0; // 🎬 YENİ: Reklam izleyerek kazanılan ipuçları
   late DateTime startTime;
   bool gameOver = false;
   bool gameWon = false;
@@ -76,6 +78,9 @@ class _SudokuGameScreenState extends State<SudokuGameScreen> {
     }
   }
 
+  // 🎬 Toplam ipucu sayısı
+  int get totalHints => (3 - hintsUsed) + extraHints;
+
   @override
   void initState() {
     super.initState();
@@ -88,6 +93,7 @@ class _SudokuGameScreenState extends State<SudokuGameScreen> {
     board = solution.map((row) => List<int>.from(row)).toList();
     editable = List.generate(9, (_) => List.generate(9, (_) => false));
     isCorrect = List.generate(9, (_) => List.generate(9, (_) => true));
+    isHint = List.generate(9, (_) => List.generate(9, (_) => false));
 
     Random random = Random(widget.level);
     Set<int> removedCells = {};
@@ -260,12 +266,6 @@ class _SudokuGameScreenState extends State<SudokuGameScreen> {
   }
 
   int _calculateStars() {
-    // ⭐ YENİ YILDIZ SİSTEMİ: 3 yıldız için 0 HATA ZORUNLU!
-    
-    // 3 YILDIZ İÇİN ZORUNLU ŞARTLAR:
-    // 1. Yeterli puan
-    // 2. 0 HATA (zorunlu!)
-    
     Map<String, List<int>> starLimits = {
       'easy': [500, 1000],
       'kolay': [500, 1000],
@@ -279,17 +279,14 @@ class _SudokuGameScreenState extends State<SudokuGameScreen> {
 
     List<int> limits = starLimits[widget.difficulty.toLowerCase()] ?? [800, 1500];
 
-    // 3 YILDIZ: Yüksek puan + 0 HATA zorunlu!
     if (score >= limits[1] && mistakes == 0) {
       return 3;
     }
     
-    // 2 YILDIZ: Orta puan (1-2 hata olabilir)
     if (score >= limits[0]) {
       return 2;
     }
     
-    // 1 YILDIZ: Tamamladınız!
     return 1;
   }
 
@@ -315,14 +312,24 @@ class _SudokuGameScreenState extends State<SudokuGameScreen> {
     }
   }
 
+  // 🎬 YENİ: İpucu kullanma fonksiyonu (reklam seçeneği ile)
   void _useHint() {
-    if (selectedRow != -1 && selectedCol != -1 && hintsUsed < 3 && !gameOver) {
+    // Eğer ipucu varsa
+    if (totalHints > 0 && selectedRow != -1 && selectedCol != -1 && !gameOver) {
       if (editable[selectedRow][selectedCol]) {
         setState(() {
           board[selectedRow][selectedCol] = solution[selectedRow][selectedCol];
           isCorrect[selectedRow][selectedCol] = true;
+          isHint[selectedRow][selectedCol] = true;
           editable[selectedRow][selectedCol] = false;
-          hintsUsed++;
+          
+          // Önce normal ipuçlarından düş, sonra ekstradan
+          if (hintsUsed < 3) {
+            hintsUsed++;
+          } else {
+            extraHints--;
+          }
+          
           score = (score - 50).clamp(0, 999999);
         });
 
@@ -334,6 +341,193 @@ class _SudokuGameScreenState extends State<SudokuGameScreen> {
           _showVictoryDialog();
         }
       }
+    } else if (!gameOver) {
+      // 🎬 İpucu kalmadıysa reklam dialog'u göster
+      _showWatchAdDialog();
+    }
+  }
+
+  // 🎬 YENİ: Reklam İzleme Dialog'u
+  void _showWatchAdDialog() {
+    final local = AppLocalizations(widget.currentLanguage);
+    final bool isTurkish = widget.currentLanguage == 'tr';
+    
+    showDialog(
+      context: context,
+      barrierDismissible: true,
+      builder: (context) => AlertDialog(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+        title: Column(
+          children: [
+            Icon(
+              Icons.lightbulb_outline,
+              size: 60,
+              color: Colors.amber,
+            ),
+            const SizedBox(height: 16),
+            Text(
+              isTurkish ? 'İpucu Hakkı Bitti!' : 'No Hints Left!',
+              textAlign: TextAlign.center,
+              style: TextStyle(
+                fontSize: 24,
+                fontWeight: FontWeight.bold,
+                color: Colors.grey.shade800,
+              ),
+            ),
+          ],
+        ),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Container(
+              padding: const EdgeInsets.all(16),
+              decoration: BoxDecoration(
+                color: Colors.amber.shade50,
+                borderRadius: BorderRadius.circular(12),
+                border: Border.all(color: Colors.amber.shade200, width: 2),
+              ),
+              child: Column(
+                children: [
+                  Icon(Icons.video_library, size: 48, color: Colors.amber.shade700),
+                  const SizedBox(height: 12),
+                  Text(
+                    isTurkish 
+                        ? 'Reklam izleyerek\n+1 ipucu kazanabilirsin!' 
+                        : 'Watch an ad to earn\n+1 hint!',
+                    textAlign: TextAlign.center,
+                    style: TextStyle(
+                      fontSize: 16,
+                      fontWeight: FontWeight.w600,
+                      color: Colors.grey.shade800,
+                      height: 1.4,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            const SizedBox(height: 16),
+            Row(
+              children: [
+                Icon(Icons.play_circle_fill, color: Colors.green, size: 20),
+                const SizedBox(width: 8),
+                Expanded(
+                  child: Text(
+                    isTurkish 
+                        ? '~ 30 saniye reklam' 
+                        : '~ 30 second ad',
+                    style: TextStyle(
+                      fontSize: 14,
+                      color: Colors.grey.shade600,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ],
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: Text(
+              isTurkish ? 'İptal' : 'Cancel',
+              style: TextStyle(color: Colors.grey.shade600, fontSize: 16),
+            ),
+          ),
+          ElevatedButton.icon(
+            style: ElevatedButton.styleFrom(
+              backgroundColor: Colors.amber,
+              padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+            ),
+            onPressed: () {
+              Navigator.pop(context);
+              _watchAdForHint();
+            },
+            icon: const Icon(Icons.play_arrow, color: Colors.white),
+            label: Text(
+              isTurkish ? 'Reklam İzle' : 'Watch Ad',
+              style: const TextStyle(
+                color: Colors.white,
+                fontSize: 16,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  // 🎬 YENİ: Reklam İzleme Simülasyonu (Google Ads entegrasyonu için hazır)
+  Future<void> _watchAdForHint() async {
+    final local = AppLocalizations(widget.currentLanguage);
+    final bool isTurkish = widget.currentLanguage == 'tr';
+
+    // Loading dialog göster
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (context) => AlertDialog(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            CircularProgressIndicator(color: Colors.amber),
+            const SizedBox(height: 20),
+            Text(
+              isTurkish ? 'Reklam yükleniyor...' : 'Loading ad...',
+              style: TextStyle(fontSize: 16, color: Colors.grey.shade700),
+            ),
+          ],
+        ),
+      ),
+    );
+
+    // 🎬 TODO: Buraya Google AdMob entegrasyonu gelecek
+    // Şimdilik 2 saniye bekle (reklam simülasyonu)
+    await Future.delayed(const Duration(seconds: 2));
+
+    // Loading dialog'u kapat
+    Navigator.pop(context);
+
+    // 🎬 TODO: Gerçek reklam burada gösterilecek
+    // AdMob rewarded ad show here
+    
+    // Reklam izlendikten sonra 2 saniye daha bekle
+    await Future.delayed(const Duration(seconds: 2));
+
+    // İpucu ver!
+    setState(() {
+      extraHints++;
+    });
+
+    // Başarı mesajı
+    if (mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Row(
+            children: [
+              Icon(Icons.check_circle, color: Colors.white),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Text(
+                  isTurkish 
+                      ? '🎉 +1 İpucu Kazandınız!' 
+                      : '🎉 +1 Hint Earned!',
+                  style: const TextStyle(
+                    fontSize: 16,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+              ),
+            ],
+          ),
+          backgroundColor: Colors.green,
+          duration: const Duration(seconds: 2),
+          behavior: SnackBarBehavior.floating,
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+        ),
+      );
     }
   }
 
@@ -589,7 +783,7 @@ class _SudokuGameScreenState extends State<SudokuGameScreen> {
                 children: [
                   StatBox(label: local.translate('score'), value: '$score', icon: Icons.emoji_events),
                   StatBox(label: local.translate('mistakes'), value: '$mistakes/3', icon: Icons.close),
-                  StatBox(label: local.translate('hints'), value: '${3 - hintsUsed}', icon: Icons.lightbulb),
+                  StatBox(label: local.translate('hints'), value: '$totalHints', icon: Icons.lightbulb), // 🎬 Toplam ipucu
                 ],
               ),
             ),
@@ -626,9 +820,12 @@ class _SudokuGameScreenState extends State<SudokuGameScreen> {
                         bool isEditable = editable[row][col];
                         int value = board[row][col];
                         bool isCorrectValue = isCorrect[row][col];
+                        bool isHintCell = isHint[row][col];
 
                         Color textColor;
-                        if (isEditable && value != 0) {
+                        if (isHintCell) {
+                          textColor = Colors.amber.shade700;
+                        } else if (isEditable && value != 0) {
                           textColor = isCorrectValue ? Colors.green : Colors.red;
                         } else {
                           textColor = Colors.black87;
@@ -690,7 +887,7 @@ class _SudokuGameScreenState extends State<SudokuGameScreen> {
                       ),
                     ],
                   ),
-                  const SizedBox(height: 80),
+                  const SizedBox(height: 8),
                 ],
               ),
             ),
