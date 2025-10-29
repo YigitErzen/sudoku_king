@@ -85,7 +85,7 @@ class _SudokuGameScreenState extends State<SudokuGameScreen> {
     }
   }
 
-  int get totalHints => (3 - hintsUsed) + extraHints;
+  int get totalHints => (1 - hintsUsed) + extraHints;
 
   @override
   void initState() {
@@ -395,7 +395,7 @@ class _SudokuGameScreenState extends State<SudokuGameScreen> {
           isHint[selectedRow][selectedCol] = true;
           editable[selectedRow][selectedCol] = false;
           
-          if (hintsUsed < 3) {
+          if (hintsUsed < 1) {
             hintsUsed++;
           } else {
             extraHints--;
@@ -1140,7 +1140,7 @@ class _SudokuGameScreenState extends State<SudokuGameScreen> {
                       ),
                     ],
                   ),
-                  const SizedBox(height: 8),
+                  const SizedBox(height: 80),
                 ],
               ),
             ),

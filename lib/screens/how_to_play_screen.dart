@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import '../utils/app_localizations.dart';
 
 class HowToPlayScreen extends StatelessWidget {
@@ -11,6 +12,7 @@ class HowToPlayScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    SystemChrome.setPreferredOrientations([DeviceOrientation.portraitUp]);
     final local = AppLocalizations(currentLanguage);
     final bool isTurkish = currentLanguage == 'tr';
 
@@ -30,7 +32,6 @@ class HowToPlayScreen extends StatelessWidget {
         child: SafeArea(
           child: Column(
             children: [
-              // Header
               Container(
                 padding: const EdgeInsets.all(20),
                 child: Row(
@@ -61,8 +62,6 @@ class HowToPlayScreen extends StatelessWidget {
                   ],
                 ),
               ),
-
-              // Content
               Expanded(
                 child: Container(
                   margin: const EdgeInsets.only(top: 8),
@@ -81,7 +80,6 @@ class HowToPlayScreen extends StatelessWidget {
                     child: ListView(
                       padding: const EdgeInsets.all(24),
                       children: [
-                        // Sudoku Nedir
                         _TitleCard(
                           icon: Icons.grid_4x4,
                           title: isTurkish ? 'SUDOKU NEDİR?' : 'WHAT IS SUDOKU?',
@@ -96,7 +94,6 @@ class HowToPlayScreen extends StatelessWidget {
 
                         const SizedBox(height: 24),
 
-                        // Temel Kurallar
                         _TitleCard(
                           icon: Icons.rule,
                           title: isTurkish ? 'TEMEL KURALLAR' : 'BASIC RULES',
@@ -133,7 +130,6 @@ class HowToPlayScreen extends StatelessWidget {
 
                         const SizedBox(height: 24),
 
-                        // Oyun Özellikleri
                         _TitleCard(
                           icon: Icons.stars,
                           title: isTurkish ? 'OYUN ÖZELLİKLERİ' : 'GAME FEATURES',
@@ -145,8 +141,8 @@ class HowToPlayScreen extends StatelessWidget {
                           icon: Icons.lightbulb_outline,
                           title: isTurkish ? 'İpucu Sistemi' : 'Hint System',
                           description: isTurkish
-                            ? 'Her levelde 3 ipucu hakkınız var. Takıldığınızda kullanın!'
-                            : 'You have 3 hints per level. Use them when stuck!',
+                            ? 'Her levelde 1 ipucu hakkınız var. Takıldığınızda kullanın!'
+                            : 'You have 1 hint per level. Use it when stuck!',
                           color: Colors.amber,
                         ),
 
@@ -161,7 +157,6 @@ class HowToPlayScreen extends StatelessWidget {
 
                         const SizedBox(height: 24),
 
-                        // YILDIZ SİSTEMİ - YENİ!
                         _TitleCard(
                           icon: Icons.star,
                           title: isTurkish ? 'YILDIZ SİSTEMİ ⭐' : 'STAR SYSTEM ⭐',
@@ -169,7 +164,6 @@ class HowToPlayScreen extends StatelessWidget {
                         ),
                         const SizedBox(height: 16),
 
-                        // 3 YILDIZ
                         _StarRequirementCard(
                           stars: 3,
                           title: isTurkish ? '3 YILDIZ 🏆' : '3 STARS 🏆',
@@ -187,7 +181,6 @@ class HowToPlayScreen extends StatelessWidget {
                           color: Colors.amber,
                         ),
 
-                        // 2 YILDIZ
                         _StarRequirementCard(
                           stars: 2,
                           title: isTurkish ? '2 YILDIZ 👍' : '2 STARS 👍',
@@ -205,7 +198,6 @@ class HowToPlayScreen extends StatelessWidget {
                           color: Colors.blue,
                         ),
 
-                        // 1 YILDIZ
                         _StarRequirementCard(
                           stars: 1,
                           title: isTurkish ? '1 YILDIZ ✓' : '1 STAR ✓',
@@ -225,14 +217,12 @@ class HowToPlayScreen extends StatelessWidget {
 
                         const SizedBox(height: 24),
 
-                        // Puan Sistemi
                         _TitleCard(
                           icon: Icons.emoji_events,
                           title: isTurkish ? 'PUAN SİSTEMİ 💯' : 'SCORING SYSTEM 💯',
                           color: Colors.green,
                         ),
                         const SizedBox(height: 16),
-
 
                         _ScoreCard(
                           icon: Icons.speed,
@@ -268,7 +258,6 @@ class HowToPlayScreen extends StatelessWidget {
 
                         const SizedBox(height: 24),
 
-                        // ÖNEMLİ NOTLAR
                         Container(
                           padding: const EdgeInsets.all(20),
                           decoration: BoxDecoration(
@@ -318,7 +307,6 @@ class HowToPlayScreen extends StatelessWidget {
 
                         const SizedBox(height: 24),
 
-                        // Başla Butonu
                         Container(
                           padding: const EdgeInsets.all(24),
                           decoration: BoxDecoration(
@@ -373,7 +361,6 @@ class HowToPlayScreen extends StatelessWidget {
   }
 }
 
-// Widget sınıfları
 class _TitleCard extends StatelessWidget {
   final IconData icon;
   final String title;
@@ -684,52 +671,6 @@ class _ScoreCard extends StatelessWidget {
                   ),
                 ),
               ],
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-}
-
-class _InfoBox extends StatelessWidget {
-  final String title;
-  final String content;
-  final Color color;
-
-  const _InfoBox({
-    required this.title,
-    required this.content,
-    required this.color,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: color.withOpacity(0.1),
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: color.withOpacity(0.3), width: 2),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(
-            title,
-            style: TextStyle(
-              fontSize: 16,
-              fontWeight: FontWeight.bold,
-              color: color,
-            ),
-          ),
-          const SizedBox(height: 8),
-          Text(
-            content,
-            style: TextStyle(
-              fontSize: 14,
-              color: Colors.grey.shade800,
-              height: 1.5,
             ),
           ),
         ],
