@@ -214,7 +214,6 @@ class _SudokuGameScreenState extends State<SudokuGameScreen> {
     Duration elapsed = DateTime.now().difference(startTime);
     int timeInSeconds = elapsed.inSeconds;
     
-    // Zorluk çarpanı - her zorluk farklı base puan
     int difficultyMultiplier = switch (widget.difficulty.toLowerCase()) {
       'easy' || 'kolay' => 100,
       'medium' || 'orta' => 150,
@@ -223,71 +222,75 @@ class _SudokuGameScreenState extends State<SudokuGameScreen> {
       _ => 150,
     };
     
-    // Base puan - zorluk bazlı
     score = difficultyMultiplier;
     
-    // Hedef süre - zorluk bazlı (dakika cinsinden)
     int targetTime = switch (widget.difficulty.toLowerCase()) {
-      'easy' || 'kolay' => 180,    // 3 dakika
-      'medium' || 'orta' => 300,   // 5 dakika
-      'hard' || 'zor' => 480,      // 8 dakika
-      'expert' || 'uzman' => 600,  // 10 dakika
+      'easy' || 'kolay' => 180,
+      'medium' || 'orta' => 300,
+      'hard' || 'zor' => 480,
+      'expert' || 'uzman' => 600,
       _ => 300,
     };
     
-    // SÜRE BONUSU - Hızlı bitirme ödülü (BÜYÜK ETKİ!)
     if (timeInSeconds < targetTime) {
-      int timeBonus = ((targetTime - timeInSeconds) * 5).round(); // 5x çarpan!
+      int timeBonus = ((targetTime - timeInSeconds) * 5).round();
       score += timeBonus;
     } else {
-      // Yavaş bitirme cezası
       int penalty = ((timeInSeconds - targetTime) * 2).round();
-      score = (score - penalty).clamp(50, score); // Minimum 50 puan
+      score = (score - penalty).clamp(50, score);
     }
     
-    // HATASIZ BONUS - BÜYÜK ÖDÜL!
     if (mistakes == 0) {
-      score += 800; // 500'den 800'e çıktı!
+      score += 800;
     } else if (mistakes == 1) {
-      score += 300; // 1 hata için küçük bonus
+      score += 300;
     }
-    // 2-3 hata: bonus yok
     
-    // İPUCUSUZ BONUS - BÜYÜK ÖDÜL!
     if (hintsUsed == 0) {
-      score += 500; // 300'den 500'e çıktı!
+      score += 500;
     } else if (hintsUsed == 1) {
-      score += 200; // 1 ipucu için küçük bonus
+      score += 200;
     }
-    // 2-3 ipucu: bonus yok
     
-    // MÜKEMMELLİK BONUSU - Hem hatasız hem ipucusuz!
     if (mistakes == 0 && hintsUsed == 0) {
-      score += 500; // Ekstra 500 puan!
+      score += 500;
     }
     
-    // Minimum puan garantisi
     score = score.clamp(50, 10000);
   }
 
   int _calculateStars() {
-    // Zorluk seviyesine göre yıldız limitleri - ÇOK DAHA ZOR!
+    // ⭐ YENİ YILDIZ SİSTEMİ: 3 yıldız için 0 HATA ZORUNLU!
+    
+    // 3 YILDIZ İÇİN ZORUNLU ŞARTLAR:
+    // 1. Yeterli puan
+    // 2. 0 HATA (zorunlu!)
+    
     Map<String, List<int>> starLimits = {
-      'easy': [500, 1000],      // Kolay: 500+ = 2 yıldız, 1000+ = 3 yıldız
+      'easy': [500, 1000],
       'kolay': [500, 1000],
-      'medium': [800, 1500],    // Orta: 800+ = 2 yıldız, 1500+ = 3 yıldız
+      'medium': [800, 1500],
       'orta': [800, 1500],
-      'hard': [1000, 2000],     // Zor: 1000+ = 2 yıldız, 2000+ = 3 yıldız
+      'hard': [1000, 2000],
       'zor': [1000, 2000],
-      'expert': [1500, 2500],   // Uzman: 1500+ = 2 yıldız, 2500+ = 3 yıldız
+      'expert': [1500, 2500],
       'uzman': [1500, 2500],
     };
 
     List<int> limits = starLimits[widget.difficulty.toLowerCase()] ?? [800, 1500];
 
-    if (score >= limits[1]) return 3; // 3 Yıldız - ÇOK ZOR!
-    if (score >= limits[0]) return 2; // 2 Yıldız - ORTA
-    return 1; // 1 Yıldız - KOLAY
+    // 3 YILDIZ: Yüksek puan + 0 HATA zorunlu!
+    if (score >= limits[1] && mistakes == 0) {
+      return 3;
+    }
+    
+    // 2 YILDIZ: Orta puan (1-2 hata olabilir)
+    if (score >= limits[0]) {
+      return 2;
+    }
+    
+    // 1 YILDIZ: Tamamladınız!
+    return 1;
   }
 
   Future<void> _saveProgress() async {
@@ -302,7 +305,6 @@ class _SudokuGameScreenState extends State<SudokuGameScreen> {
       await prefs.setInt('level_${widget.level}_score', score);
       await prefs.setInt('level_${widget.level}_time', timeInSeconds);
       
-      // Yıldızları kaydet
       int stars = _calculateStars();
       await StorageService.saveLevelStars(widget.level, stars);
     }
@@ -369,7 +371,6 @@ class _SudokuGameScreenState extends State<SudokuGameScreen> {
               ),
             ),
             const SizedBox(height: 20),
-            // Büyük Yıldız Gösterimi
             BigStarsDisplay(stars: stars),
             const SizedBox(height: 20),
             Text(
@@ -393,7 +394,6 @@ class _SudokuGameScreenState extends State<SudokuGameScreen> {
               ),
               child: Column(
                 children: [
-                  // SCORE - Büyük ve belirgin
                   Text(
                     '${local.translate('score').toUpperCase()}:',
                     style: TextStyle(
@@ -561,7 +561,7 @@ class _SudokuGameScreenState extends State<SudokuGameScreen> {
 
     return Scaffold(
       appBar: AppBar(
-        title: Text('${local.translate('level')} ${widget.level} - ${widget.difficulty}'),
+        title: Text('${local.translate('level')} ${widget.level}'),
         centerTitle: true,
         elevation: 0,
         flexibleSpace: Container(
@@ -598,7 +598,7 @@ class _SudokuGameScreenState extends State<SudokuGameScreen> {
                 child: AspectRatio(
                   aspectRatio: 1,
                   child: Container(
-                    margin: const EdgeInsets.all(16),
+                    margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
                     decoration: BoxDecoration(
                       color: Colors.white,
                       borderRadius: BorderRadius.circular(12),
@@ -668,15 +668,16 @@ class _SudokuGameScreenState extends State<SudokuGameScreen> {
                 ),
               ),
             ),
+            const SizedBox(height: 8),
             Container(
-              padding: const EdgeInsets.all(16),
+              padding: const EdgeInsets.symmetric(horizontal: 16),
               child: Column(
                 children: [
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                     children: List.generate(5, (i) => NumberButton(number: i + 1, onTap: _placeNumber)),
                   ),
-                  const SizedBox(height: 12),
+                  const SizedBox(height: 6),
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                     children: [
@@ -689,6 +690,7 @@ class _SudokuGameScreenState extends State<SudokuGameScreen> {
                       ),
                     ],
                   ),
+                  const SizedBox(height: 80),
                 ],
               ),
             ),

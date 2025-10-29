@@ -36,7 +36,7 @@ class _SudokuQuestAppState extends State<SudokuQuestApp> {
       currentLanguage = lang;
     });
   }
-
+  
   @override
   Widget build(BuildContext context) {
     return MaterialApp(

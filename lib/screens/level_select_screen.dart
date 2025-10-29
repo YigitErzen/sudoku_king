@@ -288,7 +288,7 @@ class _LevelSelectScreenState extends State<LevelSelectScreen> {
                                                 borderRadius: BorderRadius.circular(10),
                                               ),
                                               child: Text(
-                                                'NEW',
+                                                widget.currentLanguage == 'tr' ? 'YENİ' : 'NEW',
                                                 style: TextStyle(
                                                   fontSize: 10,
                                                   fontWeight: FontWeight.bold,

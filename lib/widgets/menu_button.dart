@@ -5,14 +5,18 @@ class MenuButton extends StatelessWidget {
   final String label;
   final Color color;
   final VoidCallback onTap;
+  final double fontSize;
+  final double letterSpacing;
 
   const MenuButton({
-    super.key,
+    Key? key,
     required this.icon,
     required this.label,
     required this.color,
     required this.onTap,
-  });
+    this.fontSize = 24,
+    this.letterSpacing = 1,
+  }) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
@@ -37,13 +41,18 @@ class MenuButton extends StatelessWidget {
           children: [
             Icon(icon, color: color, size: 32),
             const SizedBox(width: 15),
-            Text(
-              label,
-              style: TextStyle(
-                fontSize: 24,
-                fontWeight: FontWeight.bold,
-                color: color,
-                letterSpacing: 1,
+            Flexible(
+              child: Text(
+                label,
+                style: TextStyle(
+                  fontSize: fontSize,
+                  fontWeight: FontWeight.bold,
+                  color: color,
+                  letterSpacing: letterSpacing,
+                ),
+                textAlign: TextAlign.center,
+                overflow: TextOverflow.ellipsis,
+                maxLines: 1,
               ),
             ),
           ],

@@ -48,7 +48,7 @@ class HowToPlayScreen extends StatelessWidget {
                     const SizedBox(width: 16),
                     Expanded(
                       child: Text(
-                        isTurkish ? 'NASIL OYNANIR?' : 'HOW TO PLAY?',
+                        isTurkish ? 'NASIL OYNANIR' : 'HOW TO PLAY?',
                         style: const TextStyle(
                           fontSize: 28,
                           fontWeight: FontWeight.bold,
@@ -159,13 +159,68 @@ class HowToPlayScreen extends StatelessWidget {
                           color: Colors.red,
                         ),
 
-                        _FeatureCard(
+                        const SizedBox(height: 24),
+
+                        // YILDIZ SİSTEMİ - YENİ!
+                        _TitleCard(
                           icon: Icons.star,
-                          title: isTurkish ? 'Yıldız Sistemi' : 'Star System',
-                          description: isTurkish
-                            ? 'Puanınıza göre 1-3 yıldız kazanın. Yüksek puan = Daha fazla yıldız!'
-                            : 'Earn 1-3 stars based on your score. Higher score = More stars!',
-                          color: Colors.purple,
+                          title: isTurkish ? 'YILDIZ SİSTEMİ ⭐' : 'STAR SYSTEM ⭐',
+                           color: Colors.orange,
+                        ),
+                        const SizedBox(height: 16),
+
+                        // 3 YILDIZ
+                        _StarRequirementCard(
+                          stars: 3,
+                          title: isTurkish ? '3 YILDIZ 🏆' : '3 STARS 🏆',
+                          requirements: isTurkish
+                            ? [
+                                '✅ Yüksek puan (zorluk bazlı)',
+                                '✅ 0 HATA (ZORUNLU!)',
+                                '✅ Hızlı bitirme',
+                              ]
+                            : [
+                                '✅ High score (difficulty based)',
+                                '✅ 0 MISTAKES (REQUIRED!)',
+                                '✅ Fast completion',
+                              ],
+                          color: Colors.amber,
+                        ),
+
+                        // 2 YILDIZ
+                        _StarRequirementCard(
+                          stars: 2,
+                          title: isTurkish ? '2 YILDIZ 👍' : '2 STARS 👍',
+                          requirements: isTurkish
+                            ? [
+                                '✅ Orta seviye puan',
+                                '⚠️ 1-2 hata yapabilirsiniz',
+                                '⚠️ Biraz yavaş olabilir',
+                              ]
+                            : [
+                                '✅ Medium score',
+                                '⚠️ 1-2 mistakes allowed',
+                                '⚠️ Can be slower',
+                              ],
+                          color: Colors.blue,
+                        ),
+
+                        // 1 YILDIZ
+                        _StarRequirementCard(
+                          stars: 1,
+                          title: isTurkish ? '1 YILDIZ ✓' : '1 STAR ✓',
+                          requirements: isTurkish
+                            ? [
+                                '✅ Leveli tamamladınız!',
+                                '✅ Bir sonraki level açıldı',
+                                '📝 Daha fazla yıldız için tekrar oynayın',
+                              ]
+                            : [
+                                '✅ Level completed!',
+                                '✅ Next level unlocked',
+                                '📝 Replay for more stars',
+                              ],
+                          color: Colors.grey,
                         ),
 
                         const SizedBox(height: 24),
@@ -173,41 +228,92 @@ class HowToPlayScreen extends StatelessWidget {
                         // Puan Sistemi
                         _TitleCard(
                           icon: Icons.emoji_events,
-                          title: isTurkish ? 'PUAN SİSTEMİ' : 'SCORING SYSTEM',
+                          title: isTurkish ? 'PUAN SİSTEMİ 💯' : 'SCORING SYSTEM 💯',
                           color: Colors.green,
                         ),
                         const SizedBox(height: 16),
 
+
                         _ScoreCard(
                           icon: Icons.speed,
-                          title: isTurkish ? 'Hız Bonusu' : 'Speed Bonus',
+                          title: isTurkish ? 'Hız Bonusu (×5)' : 'Speed Bonus (×5)',
                           description: isTurkish
-                            ? 'Hızlı bitirirseniz ekstra puan!'
-                            : 'Finish fast for extra points!',
+                            ? 'Her tasarruf edilen saniye = 5 puan! Yavaş bitirme = ceza (-2 puan/sn)'
+                            : 'Each saved second = 5 points! Slow finish = penalty (-2 pts/sec)',
                         ),
 
                         _ScoreCard(
                           icon: Icons.check_circle,
                           title: isTurkish ? 'Hatasız Bonus' : 'No Mistake Bonus',
                           description: isTurkish
-                            ? 'Hata yapmazsanız +800 puan!'
-                            : 'No mistakes = +800 points!',
+                            ? '0 hata: +800 puan! | 1 hata: +300 puan'
+                            : '0 mistakes: +800 points! | 1 mistake: +300 points',
                         ),
 
                         _ScoreCard(
                           icon: Icons.lightbulb_outline,
                           title: isTurkish ? 'İpucusuz Bonus' : 'No Hint Bonus',
                           description: isTurkish
-                            ? 'İpucu kullanmazsanız +500 puan!'
-                            : 'No hints used = +500 points!',
+                            ? '0 ipucu: +500 puan! | 1 ipucu: +200 puan'
+                            : '0 hints: +500 points! | 1 hint: +200 points',
                         ),
 
                         _ScoreCard(
                           icon: Icons.auto_awesome,
-                          title: isTurkish ? 'Mükemmellik Bonusu' : 'Perfection Bonus',
+                          title: isTurkish ? 'Mükemmellik Bonusu!' : 'Perfection Bonus!',
                           description: isTurkish
-                            ? 'Hem hatasız hem ipucusuz: +500 EKSTRA!'
-                            : 'No mistakes + No hints: +500 EXTRA!',
+                            ? '0 hata + 0 ipucu = +500 EKSTRA PUAN! 🏆'
+                            : '0 mistakes + 0 hints = +500 EXTRA POINTS! 🏆',
+                        ),
+
+                        const SizedBox(height: 24),
+
+                        // ÖNEMLİ NOTLAR
+                        Container(
+                          padding: const EdgeInsets.all(20),
+                          decoration: BoxDecoration(
+                            color: Colors.red.shade50,
+                            borderRadius: BorderRadius.circular(16),
+                            border: Border.all(color: Colors.red.shade200, width: 2),
+                          ),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Row(
+                                children: [
+                                  Icon(Icons.warning_amber, color: Colors.red, size: 28),
+                                  const SizedBox(width: 12),
+                                  Expanded(
+                                    child: Text(
+                                      isTurkish ? '⚠️ ÖNEMLİ!' : '⚠️ IMPORTANT!',
+                                      style: TextStyle(
+                                        fontSize: 20,
+                                        fontWeight: FontWeight.bold,
+                                        color: Colors.red.shade900,
+                                      ),
+                                    ),
+                                  ),
+                                ],
+                              ),
+                              const SizedBox(height: 12),
+                              Text(
+                                isTurkish
+                                  ? '🏆 3 YILDIZ almak için 0 HATA ZORUNLU!\n\n'
+                                    '✅ Yüksek puan + 0 Hata = 3 Yıldız\n'
+                                    '⚠️ Yüksek puan + 1 Hata = Maksimum 2 Yıldız\n\n'
+                                    'Mükemmellik için hata yapmayın! 💪'
+                                  : '🏆 0 MISTAKES REQUIRED for 3 STARS!\n\n'
+                                    '✅ High Score + 0 Mistakes = 3 Stars\n'
+                                    '⚠️ High Score + 1 Mistake = Max 2 Stars\n\n'
+                                    'Be perfect for perfection! 💪',
+                                style: TextStyle(
+                                  fontSize: 15,
+                                  color: Colors.red.shade900,
+                                  height: 1.5,
+                                ),
+                              ),
+                            ],
+                          ),
                         ),
 
                         const SizedBox(height: 24),
@@ -243,8 +349,8 @@ class HowToPlayScreen extends StatelessWidget {
                               const SizedBox(height: 8),
                               Text(
                                 isTurkish 
-                                  ? 'Şimdi oynamaya başla ve Sudoku ustası ol!' 
-                                  : 'Start playing now and become a Sudoku master!',
+                                  ? 'Şimdi oynamaya başla ve 3 yıldız topla!' 
+                                  : 'Start playing now and collect 3 stars!',
                                 textAlign: TextAlign.center,
                                 style: TextStyle(
                                   fontSize: 16,
@@ -412,97 +518,6 @@ class _SimpleRuleCard extends StatelessWidget {
   }
 }
 
-class _RuleCard extends StatelessWidget {
-  final String number;
-  final String title;
-  final String description;
-  final IconData icon;
-  final Color color;
-
-  const _RuleCard({
-    required this.number,
-    required this.title,
-    required this.description,
-    required this.icon,
-    required this.color,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      margin: const EdgeInsets.only(bottom: 16),
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(16),
-        boxShadow: [
-          BoxShadow(
-            color: color.withOpacity(0.1),
-            blurRadius: 8,
-            offset: const Offset(0, 4),
-          ),
-        ],
-      ),
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Container(
-            width: 50,
-            height: 50,
-            decoration: BoxDecoration(
-              gradient: LinearGradient(
-                colors: [color, color.withOpacity(0.7)],
-              ),
-              borderRadius: BorderRadius.circular(12),
-            ),
-            child: Center(
-              child: Text(
-                number,
-                style: const TextStyle(
-                  fontSize: 24,
-                  fontWeight: FontWeight.bold,
-                  color: Colors.white,
-                ),
-              ),
-            ),
-          ),
-          const SizedBox(width: 16),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Row(
-                  children: [
-                    Icon(icon, color: color, size: 20),
-                    const SizedBox(width: 8),
-                    Text(
-                      title,
-                      style: TextStyle(
-                        fontSize: 18,
-                        fontWeight: FontWeight.bold,
-                        color: color,
-                      ),
-                    ),
-                  ],
-                ),
-                const SizedBox(height: 8),
-                Text(
-                  description,
-                  style: TextStyle(
-                    fontSize: 14,
-                    color: Colors.grey.shade700,
-                    height: 1.4,
-                  ),
-                ),
-              ],
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-}
-
 class _FeatureCard extends StatelessWidget {
   final IconData icon;
   final String title;
@@ -565,6 +580,66 @@ class _FeatureCard extends StatelessWidget {
   }
 }
 
+class _StarRequirementCard extends StatelessWidget {
+  final int stars;
+  final String title;
+  final List<String> requirements;
+  final Color color;
+
+  const _StarRequirementCard({
+    required this.stars,
+    required this.title,
+    required this.requirements,
+    required this.color,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      margin: const EdgeInsets.only(bottom: 16),
+      padding: const EdgeInsets.all(20),
+      decoration: BoxDecoration(
+        color: color.withOpacity(0.1),
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: color.withOpacity(0.3), width: 2),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              ...List.generate(stars, (index) => Icon(Icons.star, color: color, size: 24)),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Text(
+                  title,
+                  style: TextStyle(
+                    fontSize: 18,
+                    fontWeight: FontWeight.bold,
+                    color: color,
+                  ),
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 12),
+          ...requirements.map((req) => Padding(
+            padding: const EdgeInsets.only(bottom: 6),
+            child: Text(
+              req,
+              style: TextStyle(
+                fontSize: 14,
+                color: Colors.grey.shade800,
+                height: 1.4,
+              ),
+            ),
+          )).toList(),
+        ],
+      ),
+    );
+  }
+}
+
 class _ScoreCard extends StatelessWidget {
   final IconData icon;
   final String title;
@@ -617,68 +692,44 @@ class _ScoreCard extends StatelessWidget {
   }
 }
 
-class _DifficultyCard extends StatelessWidget {
+class _InfoBox extends StatelessWidget {
   final String title;
-  final String description;
+  final String content;
   final Color color;
-  final String emptyCount;
 
-  const _DifficultyCard({
+  const _InfoBox({
     required this.title,
-    required this.description,
+    required this.content,
     required this.color,
-    required this.emptyCount,
   });
 
   @override
   Widget build(BuildContext context) {
     return Container(
-      margin: const EdgeInsets.only(bottom: 12),
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        gradient: LinearGradient(
-          colors: [color.withOpacity(0.2), color.withOpacity(0.1)],
-        ),
+        color: color.withOpacity(0.1),
         borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: color.withOpacity(0.3), width: 2),
       ),
-      child: Row(
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Container(
-            padding: const EdgeInsets.all(12),
-            decoration: BoxDecoration(
+          Text(
+            title,
+            style: TextStyle(
+              fontSize: 16,
+              fontWeight: FontWeight.bold,
               color: color,
-              borderRadius: BorderRadius.circular(10),
-            ),
-            child: Text(
-              emptyCount,
-              style: const TextStyle(
-                fontSize: 18,
-                fontWeight: FontWeight.bold,
-                color: Colors.white,
-              ),
             ),
           ),
-          const SizedBox(width: 16),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  title,
-                  style: TextStyle(
-                    fontSize: 16,
-                    fontWeight: FontWeight.bold,
-                    color: color,
-                  ),
-                ),
-                Text(
-                  description,
-                  style: TextStyle(
-                    fontSize: 13,
-                    color: Colors.grey.shade700,
-                  ),
-                ),
-              ],
+          const SizedBox(height: 8),
+          Text(
+            content,
+            style: TextStyle(
+              fontSize: 14,
+              color: Colors.grey.shade800,
+              height: 1.5,
             ),
           ),
         ],

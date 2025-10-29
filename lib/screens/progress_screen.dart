@@ -57,14 +57,6 @@ class _ProgressScreenState extends State<ProgressScreen> {
     });
   }
 
-  String _getDifficultyLabel(int level) {
-    final local = AppLocalizations(widget.currentLanguage);
-    if (level <= 125) return local.translate('easy');
-    if (level <= 250) return local.translate('medium');
-    if (level <= 375) return local.translate('hard');
-    return local.translate('expert');
-  }
-
   Color _getDifficultyColor(int level) {
     if (level <= 125) return Colors.green;
     if (level <= 250) return Colors.orange;
@@ -169,7 +161,6 @@ class _ProgressScreenState extends State<ProgressScreen> {
                       itemBuilder: (context, index) {
                         int level = levelProgress.keys.toList()[index];
                         var data = levelProgress[level]!;
-                        String difficulty = _getDifficultyLabel(level);
                         Color color = _getDifficultyColor(level);
                         
                         return Container(
@@ -209,32 +200,12 @@ class _ProgressScreenState extends State<ProgressScreen> {
                                 ),
                               ),
                             ),
-                            title: Row(
-                              children: [
-                                Text(
-                                  '${local.translate('level')} $level',
-                                  style: const TextStyle(
-                                    fontWeight: FontWeight.bold,
-                                    fontSize: 16,
-                                  ),
-                                ),
-                                const SizedBox(width: 8),
-                                Container(
-                                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
-                                  decoration: BoxDecoration(
-                                    color: color.withOpacity(0.2),
-                                    borderRadius: BorderRadius.circular(8),
-                                  ),
-                                  child: Text(
-                                    difficulty,
-                                    style: TextStyle(
-                                      color: color,
-                                      fontSize: 12,
-                                      fontWeight: FontWeight.bold,
-                                    ),
-                                  ),
-                                ),
-                              ],
+                            title: Text(
+                              '${local.translate('level')} $level',
+                              style: const TextStyle(
+                                fontWeight: FontWeight.bold,
+                                fontSize: 16,
+                              ),
                             ),
                             subtitle: Padding(
                               padding: const EdgeInsets.only(top: 8),

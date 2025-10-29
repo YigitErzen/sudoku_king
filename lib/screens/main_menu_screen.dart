@@ -98,22 +98,7 @@ class MainMenuScreen extends StatelessWidget {
                             ),
                           ),
                           const SizedBox(height: 30),
-                          Text(
-                            '500 Epic Levels',
-                            style: TextStyle(
-                              fontSize: 20,
-                              color: Colors.white.withOpacity(0.95),
-                              letterSpacing: 2,
-                              fontWeight: FontWeight.w600,
-                              shadows: [
-                                Shadow(
-                                  blurRadius: 8,
-                                  color: Colors.black45,
-                                  offset: Offset(2, 2),
-                                ),
-                              ],
-                            ),
-                          ),
+                          
                         ],
                       ),
                     ),
@@ -155,6 +140,8 @@ class MainMenuScreen extends StatelessWidget {
                       icon: Icons.help_outline,
                       label: currentLanguage == 'tr' ? 'NASIL OYNANIR' : 'HOW TO PLAY',
                       color: Colors.blue,
+                      fontSize: 18,
+                      letterSpacing: 0.5,
                       onTap: () {
                         Navigator.push(
                           context,
@@ -166,6 +153,15 @@ class MainMenuScreen extends StatelessWidget {
                         );
                       },
                     ),
+                    const SizedBox(height: 60),
+                    Text(
+                      'v1.0.0 - Powered by ErzenApps',
+                      style: TextStyle(
+                        fontSize: 14,
+                        color: Colors.white.withOpacity(0.7),
+                        letterSpacing: 1,
+                      ),
+                    )
                   ],
                 ),
               ),
