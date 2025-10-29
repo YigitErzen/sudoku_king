@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import '../utils/app_localizations.dart';
 import '../widgets/menu_button.dart';
 import '../widgets/language_button.dart';
@@ -6,7 +7,7 @@ import 'level_select_screen.dart';
 import 'progress_screen.dart';
 import 'how_to_play_screen.dart';
 
-class MainMenuScreen extends StatelessWidget {
+class MainMenuScreen extends StatefulWidget {
   final String currentLanguage;
   final Function(String) onLanguageChange;
 
@@ -17,8 +18,20 @@ class MainMenuScreen extends StatelessWidget {
   });
 
   @override
+  State<MainMenuScreen> createState() => _MainMenuScreenState();
+}
+
+class _MainMenuScreenState extends State<MainMenuScreen> {
+  @override
+  void initState() {
+    super.initState();
+    SystemChrome.setPreferredOrientations([DeviceOrientation.portraitUp]);
+  }
+
+  @override
   Widget build(BuildContext context) {
-    final local = AppLocalizations(currentLanguage);
+    SystemChrome.setPreferredOrientations([DeviceOrientation.portraitUp]);
+    final local = AppLocalizations(widget.currentLanguage);
 
     return Scaffold(
       body: Container(
@@ -36,7 +49,6 @@ class MainMenuScreen extends StatelessWidget {
         child: SafeArea(
           child: Stack(
             children: [
-              // Dil Seçimi Butonları
               Positioned(
                 top: 10,
                 right: 10,
@@ -44,24 +56,22 @@ class MainMenuScreen extends StatelessWidget {
                   children: [
                     LanguageButton(
                       flag: '🇹🇷',
-                      isSelected: currentLanguage == 'tr',
-                      onTap: () => onLanguageChange('tr'),
+                      isSelected: widget.currentLanguage == 'tr',
+                      onTap: () => widget.onLanguageChange('tr'),
                     ),
                     const SizedBox(width: 8),
                     LanguageButton(
                       flag: '🇬🇧',
-                      isSelected: currentLanguage == 'en',
-                      onTap: () => onLanguageChange('en'),
+                      isSelected: widget.currentLanguage == 'en',
+                      onTap: () => widget.onLanguageChange('en'),
                     ),
                   ],
                 ),
               ),
-              // Ana İçerik
               Center(
                 child: Column(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
-                    // Logo ve Başlık
                     TweenAnimationBuilder(
                       tween: Tween<double>(begin: 0, end: 1),
                       duration: const Duration(milliseconds: 800),
@@ -73,7 +83,6 @@ class MainMenuScreen extends StatelessWidget {
                       },
                       child: Column(
                         children: [
-                          // Logo
                           Container(
                             padding: const EdgeInsets.all(15),
                             decoration: BoxDecoration(
@@ -98,12 +107,10 @@ class MainMenuScreen extends StatelessWidget {
                             ),
                           ),
                           const SizedBox(height: 30),
-                          
                         ],
                       ),
                     ),
                     const SizedBox(height: 80),
-                    // Menü Butonları
                     MenuButton(
                       icon: Icons.play_arrow,
                       label: local.translate('play'),
@@ -113,7 +120,7 @@ class MainMenuScreen extends StatelessWidget {
                           context,
                           MaterialPageRoute(
                             builder: (context) => LevelSelectScreen(
-                              currentLanguage: currentLanguage,
+                              currentLanguage: widget.currentLanguage,
                             ),
                           ),
                         );
@@ -129,7 +136,7 @@ class MainMenuScreen extends StatelessWidget {
                           context,
                           MaterialPageRoute(
                             builder: (context) => ProgressScreen(
-                              currentLanguage: currentLanguage,
+                              currentLanguage: widget.currentLanguage,
                             ),
                           ),
                         );
@@ -138,7 +145,7 @@ class MainMenuScreen extends StatelessWidget {
                     const SizedBox(height: 20),
                     MenuButton(
                       icon: Icons.help_outline,
-                      label: currentLanguage == 'tr' ? 'NASIL OYNANIR' : 'HOW TO PLAY',
+                      label: widget.currentLanguage == 'tr' ? 'NASIL OYNANIR' : 'HOW TO PLAY',
                       color: Colors.blue,
                       fontSize: 18,
                       letterSpacing: 0.5,
@@ -147,7 +154,7 @@ class MainMenuScreen extends StatelessWidget {
                           context,
                           MaterialPageRoute(
                             builder: (context) => HowToPlayScreen(
-                              currentLanguage: currentLanguage,
+                              currentLanguage: widget.currentLanguage,
                             ),
                           ),
                         );

@@ -35,7 +35,9 @@ class _SudokuGameScreenState extends State<SudokuGameScreen> {
   int score = 0;
   int mistakes = 0;
   int hintsUsed = 0;
-  int extraHints = 0; // 🎬 YENİ: Reklam izleyerek kazanılan ipuçları
+  int extraHints = 0; // 🎬 Reklam izleyerek kazanılan ipuçları
+  int extraLives = 0; // 🎬 YENİ: Reklam izleyerek kazanılan ekstra canlar
+  bool hasUsedExtraLife = false; // 🎬 Bu levelde extra life kullanıldı mı?
   late DateTime startTime;
   bool gameOver = false;
   bool gameWon = false;
@@ -177,7 +179,21 @@ class _SudokuGameScreenState extends State<SudokuGameScreen> {
           isCorrect[selectedRow][selectedCol] = false;
           mistakes++;
           
+          // 🎬 YENİ: 3. hatada önce reklam şansı sun!
           if (mistakes >= 3) {
+            // Eğer ekstra can varsa, kullan ve devam et
+            if (extraLives > 0) {
+              _useExtraLife();
+              return;
+            }
+            
+            // Ekstra can yoksa, reklam izleme şansı sun
+            if (!hasUsedExtraLife) {
+              _showWatchAdForExtraLifeDialog();
+              return;
+            }
+            
+            // Hem ekstra can hem reklam şansı kullanıldıysa, oyun bitti
             gameOver = true;
             gameWon = false;
             _showGameOverDialog();
@@ -194,6 +210,43 @@ class _SudokuGameScreenState extends State<SudokuGameScreen> {
         }
       });
     }
+  }
+
+  // 🎬 YENİ: Ekstra can kullan
+  void _useExtraLife() {
+    setState(() {
+      extraLives--;
+      mistakes = 2; // Hata sayısını 2'ye düşür (1 hata hakkı daha vermiş oluyoruz)
+    });
+    
+    final local = AppLocalizations(widget.currentLanguage);
+    final bool isTurkish = widget.currentLanguage == 'tr';
+    
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Row(
+          children: [
+            Icon(Icons.favorite, color: Colors.white),
+            const SizedBox(width: 12),
+            Expanded(
+              child: Text(
+                isTurkish 
+                    ? '💖 Ekstra Can Kullanıldı! 1 Hata Hakkı Daha!' 
+                    : '💖 Extra Life Used! 1 More Mistake Allowed!',
+                style: const TextStyle(
+                  fontSize: 16,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+            ),
+          ],
+        ),
+        backgroundColor: Colors.pink,
+        duration: const Duration(seconds: 2),
+        behavior: SnackBarBehavior.floating,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+      ),
+    );
   }
 
   int _calculateBasePoints(int row, int col) {
@@ -312,9 +365,8 @@ class _SudokuGameScreenState extends State<SudokuGameScreen> {
     }
   }
 
-  // 🎬 YENİ: İpucu kullanma fonksiyonu (reklam seçeneği ile)
+  // 🎬 İpucu kullanma fonksiyonu
   void _useHint() {
-    // Eğer ipucu varsa
     if (totalHints > 0 && selectedRow != -1 && selectedCol != -1 && !gameOver) {
       if (editable[selectedRow][selectedCol]) {
         setState(() {
@@ -323,7 +375,6 @@ class _SudokuGameScreenState extends State<SudokuGameScreen> {
           isHint[selectedRow][selectedCol] = true;
           editable[selectedRow][selectedCol] = false;
           
-          // Önce normal ipuçlarından düş, sonra ekstradan
           if (hintsUsed < 3) {
             hintsUsed++;
           } else {
@@ -342,13 +393,12 @@ class _SudokuGameScreenState extends State<SudokuGameScreen> {
         }
       }
     } else if (!gameOver) {
-      // 🎬 İpucu kalmadıysa reklam dialog'u göster
-      _showWatchAdDialog();
+      _showWatchAdForHintDialog();
     }
   }
 
-  // 🎬 YENİ: Reklam İzleme Dialog'u
-  void _showWatchAdDialog() {
+  // 🎬 İpucu için Reklam Dialog'u
+  void _showWatchAdForHintDialog() {
     final local = AppLocalizations(widget.currentLanguage);
     final bool isTurkish = widget.currentLanguage == 'tr';
     
@@ -458,12 +508,148 @@ class _SudokuGameScreenState extends State<SudokuGameScreen> {
     );
   }
 
-  // 🎬 YENİ: Reklam İzleme Simülasyonu (Google Ads entegrasyonu için hazır)
+  // 🎬 YENİ: Ekstra Can için Reklam Dialog'u
+  void _showWatchAdForExtraLifeDialog() {
+    final local = AppLocalizations(widget.currentLanguage);
+    final bool isTurkish = widget.currentLanguage == 'tr';
+    
+    showDialog(
+      context: context,
+      barrierDismissible: false, // Kullanıcı kapatamasın
+      builder: (context) => AlertDialog(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+        title: Column(
+          children: [
+            Icon(
+              Icons.favorite_border,
+              size: 60,
+              color: Colors.pink,
+            ),
+            const SizedBox(height: 16),
+            Text(
+              isTurkish ? '💔 3 Hata Yaptınız!' : '💔 3 Mistakes Made!',
+              textAlign: TextAlign.center,
+              style: TextStyle(
+                fontSize: 24,
+                fontWeight: FontWeight.bold,
+                color: Colors.grey.shade800,
+              ),
+            ),
+          ],
+        ),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Container(
+              padding: const EdgeInsets.all(16),
+              decoration: BoxDecoration(
+                color: Colors.pink.shade50,
+                borderRadius: BorderRadius.circular(12),
+                border: Border.all(color: Colors.pink.shade200, width: 2),
+              ),
+              child: Column(
+                children: [
+                  Icon(Icons.video_library, size: 48, color: Colors.pink.shade700),
+                  const SizedBox(height: 12),
+                  Text(
+                    isTurkish 
+                        ? 'Reklam izleyerek\n+1 CAN kazanabilirsin!' 
+                        : 'Watch an ad to earn\n+1 EXTRA LIFE!',
+                    textAlign: TextAlign.center,
+                    style: TextStyle(
+                      fontSize: 16,
+                      fontWeight: FontWeight.w600,
+                      color: Colors.grey.shade800,
+                      height: 1.4,
+                    ),
+                  ),
+                  const SizedBox(height: 12),
+                  Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                    decoration: BoxDecoration(
+                      color: Colors.pink.shade100,
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                    child: Text(
+                      isTurkish 
+                          ? '🎮 Oyuna devam edebilirsin!' 
+                          : '🎮 Continue playing!',
+                      style: TextStyle(
+                        fontSize: 14,
+                        fontWeight: FontWeight.bold,
+                        color: Colors.pink.shade900,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            const SizedBox(height: 16),
+            Row(
+              children: [
+                Icon(Icons.play_circle_fill, color: Colors.green, size: 20),
+                const SizedBox(width: 8),
+                Expanded(
+                  child: Text(
+                    isTurkish 
+                        ? '~ 30 saniye reklam' 
+                        : '~ 30 second ad',
+                    style: TextStyle(
+                      fontSize: 14,
+                      color: Colors.grey.shade600,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ],
+        ),
+        actions: [
+          TextButton(
+            onPressed: () {
+              Navigator.pop(context);
+              // Artık oyun bitti, game over dialog'unu göster
+              setState(() {
+                gameOver = true;
+                gameWon = false;
+              });
+              _showGameOverDialog();
+            },
+            child: Text(
+              isTurkish ? 'Hayır, Bitir' : 'No, End Game',
+              style: TextStyle(color: Colors.grey.shade600, fontSize: 16),
+            ),
+          ),
+          ElevatedButton.icon(
+            style: ElevatedButton.styleFrom(
+              backgroundColor: Colors.pink,
+              padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+            ),
+            onPressed: () {
+              Navigator.pop(context);
+              _watchAdForExtraLife();
+            },
+            icon: const Icon(Icons.play_arrow, color: Colors.white),
+            label: Text(
+              isTurkish ? 'Reklam İzle' : 'Watch Ad',
+              style: const TextStyle(
+                color: Colors.white,
+                fontSize: 16,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  // 🎬 İpucu için Reklam İzleme
   Future<void> _watchAdForHint() async {
     final local = AppLocalizations(widget.currentLanguage);
     final bool isTurkish = widget.currentLanguage == 'tr';
 
-    // Loading dialog göster
     showDialog(
       context: context,
       barrierDismissible: false,
@@ -483,25 +669,16 @@ class _SudokuGameScreenState extends State<SudokuGameScreen> {
       ),
     );
 
-    // 🎬 TODO: Buraya Google AdMob entegrasyonu gelecek
-    // Şimdilik 2 saniye bekle (reklam simülasyonu)
+    // 🎬 TODO: Google AdMob entegrasyonu buraya gelecek
     await Future.delayed(const Duration(seconds: 2));
-
-    // Loading dialog'u kapat
     Navigator.pop(context);
-
-    // 🎬 TODO: Gerçek reklam burada gösterilecek
-    // AdMob rewarded ad show here
     
-    // Reklam izlendikten sonra 2 saniye daha bekle
     await Future.delayed(const Duration(seconds: 2));
 
-    // İpucu ver!
     setState(() {
       extraHints++;
     });
 
-    // Başarı mesajı
     if (mounted) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
@@ -524,6 +701,72 @@ class _SudokuGameScreenState extends State<SudokuGameScreen> {
           ),
           backgroundColor: Colors.green,
           duration: const Duration(seconds: 2),
+          behavior: SnackBarBehavior.floating,
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+        ),
+      );
+    }
+  }
+
+  // 🎬 YENİ: Ekstra Can için Reklam İzleme
+  Future<void> _watchAdForExtraLife() async {
+    final local = AppLocalizations(widget.currentLanguage);
+    final bool isTurkish = widget.currentLanguage == 'tr';
+
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (context) => AlertDialog(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            CircularProgressIndicator(color: Colors.pink),
+            const SizedBox(height: 20),
+            Text(
+              isTurkish ? 'Reklam yükleniyor...' : 'Loading ad...',
+              style: TextStyle(fontSize: 16, color: Colors.grey.shade700),
+            ),
+          ],
+        ),
+      ),
+    );
+
+    // 🎬 TODO: Google AdMob entegrasyonu buraya gelecek
+    await Future.delayed(const Duration(seconds: 2));
+    Navigator.pop(context);
+    
+    await Future.delayed(const Duration(seconds: 2));
+
+    // Ekstra can ver ve oyuna devam et
+    setState(() {
+      extraLives++;
+      hasUsedExtraLife = true; // Bu levelde artık extra life kullandı
+      mistakes = 2; // Hata sayısını 2'ye düşür (1 hata hakkı daha)
+    });
+
+    if (mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Row(
+            children: [
+              Icon(Icons.favorite, color: Colors.white),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Text(
+                  isTurkish 
+                      ? '💖 +1 Ekstra Can Kazandınız! Oyun Devam Ediyor!' 
+                      : '💖 +1 Extra Life Earned! Game Continues!',
+                  style: const TextStyle(
+                    fontSize: 16,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+              ),
+            ],
+          ),
+          backgroundColor: Colors.pink,
+          duration: const Duration(seconds: 3),
           behavior: SnackBarBehavior.floating,
           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
         ),
@@ -783,7 +1026,7 @@ class _SudokuGameScreenState extends State<SudokuGameScreen> {
                 children: [
                   StatBox(label: local.translate('score'), value: '$score', icon: Icons.emoji_events),
                   StatBox(label: local.translate('mistakes'), value: '$mistakes/3', icon: Icons.close),
-                  StatBox(label: local.translate('hints'), value: '$totalHints', icon: Icons.lightbulb), // 🎬 Toplam ipucu
+                  StatBox(label: local.translate('hints'), value: '$totalHints', icon: Icons.lightbulb),
                 ],
               ),
             ),

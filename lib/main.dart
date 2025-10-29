@@ -1,8 +1,15 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'screens/main_menu_screen.dart';
 
-void main() {
+void main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+  
+  await SystemChrome.setPreferredOrientations([
+    DeviceOrientation.portraitUp,
+  ]);
+  
   runApp(const SudokuQuestApp());
 }
 
@@ -19,6 +26,7 @@ class _SudokuQuestAppState extends State<SudokuQuestApp> {
   @override
   void initState() {
     super.initState();
+    SystemChrome.setPreferredOrientations([DeviceOrientation.portraitUp]);
     _loadLanguage();
   }
 
@@ -46,6 +54,10 @@ class _SudokuQuestAppState extends State<SudokuQuestApp> {
         primarySwatch: Colors.purple,
         fontFamily: 'Roboto',
       ),
+      builder: (context, child) {
+        SystemChrome.setPreferredOrientations([DeviceOrientation.portraitUp]);
+        return child!;
+      },
       home: MainMenuScreen(
         currentLanguage: currentLanguage,
         onLanguageChange: _setLanguage,
