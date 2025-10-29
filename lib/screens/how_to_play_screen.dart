@@ -285,7 +285,7 @@ class HowToPlayScreen extends StatelessWidget {
                                   const SizedBox(width: 12),
                                   Expanded(
                                     child: Text(
-                                      isTurkish ? '⚠️ ÖNEMLİ!' : '⚠️ IMPORTANT!',
+                                      isTurkish ? 'ÖNEMLİ!' : 'IMPORTANT!',
                                       style: TextStyle(
                                         fontSize: 20,
                                         fontWeight: FontWeight.bold,
