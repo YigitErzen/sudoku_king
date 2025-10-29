@@ -179,7 +179,7 @@ class _LevelSelectScreenState extends State<LevelSelectScreen> {
                         final isUnlocked = level <= unlockedLevel;
                         final score = levelScores[level];
                         final stars = levelStars[level] ?? 0;
-                        final isCompleted = score != null;
+                        final isCompleted = score != null; // Tamamlanmış mı?
 
                         return TweenAnimationBuilder(
                           tween: Tween<double>(begin: 0, end: 1),
@@ -225,10 +225,21 @@ class _LevelSelectScreenState extends State<LevelSelectScreen> {
                                         colors: [Colors.grey.shade300, Colors.grey.shade400],
                                       ),
                                 borderRadius: BorderRadius.circular(16),
+                                // 🏆 ALTIN KENARLIK - TÜM tamamlanan leveller için!
+                                border: isCompleted
+                                    ? Border.all(
+                                        color: Colors.amber,
+                                        width: 3,
+                                      )
+                                    : null,
                                 boxShadow: [
                                   BoxShadow(
-                                    color: isUnlocked ? color.withOpacity(0.3) : Colors.grey.withOpacity(0.2),
-                                    blurRadius: 8,
+                                    color: isCompleted 
+                                        ? Colors.amber.withOpacity(0.5) 
+                                        : isUnlocked 
+                                            ? color.withOpacity(0.3) 
+                                            : Colors.grey.withOpacity(0.2),
+                                    blurRadius: isCompleted ? 12 : 8,
                                     offset: const Offset(0, 4),
                                   ),
                                 ],
@@ -302,8 +313,8 @@ class _LevelSelectScreenState extends State<LevelSelectScreen> {
                                     ),
                                   ),
                                   
-                                  // Tamamlanma işareti
-                                  if (isCompleted && stars == 3)
+                                  // Tamamlanma işareti - TÜM tamamlanan leveller için
+                                  if (isCompleted)
                                     Positioned(
                                       top: 4,
                                       right: 4,
@@ -314,16 +325,16 @@ class _LevelSelectScreenState extends State<LevelSelectScreen> {
                                           shape: BoxShape.circle,
                                           boxShadow: [
                                             BoxShadow(
-                                              color: Colors.amber.withOpacity(0.5),
-                                              blurRadius: 8,
+                                              color: Colors.amber.withOpacity(0.6),
+                                              blurRadius: 10,
                                               offset: Offset(0, 2),
                                             ),
                                           ],
                                         ),
-                                        child: Icon(
-                                          Icons.check,
+                                        child: Icon(        
+                                         Icons.check,        
                                           color: Colors.white,
-                                          size: 12,
+                                          size: 8,
                                         ),
                                       ),
                                     ),
