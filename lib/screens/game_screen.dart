@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'dart:math';
+import 'dart:async';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../utils/app_localizations.dart';
 import '../services/storage_service.dart';
@@ -35,12 +37,15 @@ class _SudokuGameScreenState extends State<SudokuGameScreen> {
   int score = 0;
   int mistakes = 0;
   int hintsUsed = 0;
-  int extraHints = 0; // 🎬 Reklam izleyerek kazanılan ipuçları
-  int extraLives = 0; // 🎬 YENİ: Reklam izleyerek kazanılan ekstra canlar
-  bool hasUsedExtraLife = false; // 🎬 Bu levelde extra life kullanıldı mı?
+  int extraHints = 0;
+  int extraLives = 0;
+  bool hasUsedExtraLife = false;
   late DateTime startTime;
   bool gameOver = false;
   bool gameWon = false;
+  
+  Timer? _timer;
+  String _elapsedTime = "00:00";
 
   Color get difficultyColor {
     switch (widget.difficulty.toLowerCase()) {
@@ -80,14 +85,34 @@ class _SudokuGameScreenState extends State<SudokuGameScreen> {
     }
   }
 
-  // 🎬 Toplam ipucu sayısı
   int get totalHints => (3 - hintsUsed) + extraHints;
 
   @override
   void initState() {
     super.initState();
+    SystemChrome.setPreferredOrientations([DeviceOrientation.portraitUp]);
     startTime = DateTime.now();
     _generatePuzzle();
+    _startTimer();
+  }
+
+  @override
+  void dispose() {
+    _timer?.cancel();
+    super.dispose();
+  }
+
+  void _startTimer() {
+    _timer = Timer.periodic(const Duration(seconds: 1), (timer) {
+      if (!gameOver) {
+        setState(() {
+          Duration elapsed = DateTime.now().difference(startTime);
+          int minutes = elapsed.inMinutes;
+          int seconds = elapsed.inSeconds % 60;
+          _elapsedTime = '${minutes.toString().padLeft(2, '0')}:${seconds.toString().padLeft(2, '0')}';
+        });
+      }
+    });
   }
 
   void _generatePuzzle() {
@@ -179,23 +204,20 @@ class _SudokuGameScreenState extends State<SudokuGameScreen> {
           isCorrect[selectedRow][selectedCol] = false;
           mistakes++;
           
-          // 🎬 YENİ: 3. hatada önce reklam şansı sun!
           if (mistakes >= 3) {
-            // Eğer ekstra can varsa, kullan ve devam et
             if (extraLives > 0) {
               _useExtraLife();
               return;
             }
             
-            // Ekstra can yoksa, reklam izleme şansı sun
             if (!hasUsedExtraLife) {
               _showWatchAdForExtraLifeDialog();
               return;
             }
             
-            // Hem ekstra can hem reklam şansı kullanıldıysa, oyun bitti
             gameOver = true;
             gameWon = false;
+            _timer?.cancel();
             _showGameOverDialog();
             return;
           }
@@ -204,6 +226,7 @@ class _SudokuGameScreenState extends State<SudokuGameScreen> {
         if (_isPuzzleComplete()) {
           gameOver = true;
           gameWon = true;
+          _timer?.cancel();
           _calculateFinalScore();
           _saveProgress();
           _showVictoryDialog();
@@ -212,14 +235,12 @@ class _SudokuGameScreenState extends State<SudokuGameScreen> {
     }
   }
 
-  // 🎬 YENİ: Ekstra can kullan
   void _useExtraLife() {
     setState(() {
       extraLives--;
-      mistakes = 2; // Hata sayısını 2'ye düşür (1 hata hakkı daha vermiş oluyoruz)
+      mistakes = 2;
     });
     
-    final local = AppLocalizations(widget.currentLanguage);
     final bool isTurkish = widget.currentLanguage == 'tr';
     
     ScaffoldMessenger.of(context).showSnackBar(
@@ -365,7 +386,6 @@ class _SudokuGameScreenState extends State<SudokuGameScreen> {
     }
   }
 
-  // 🎬 İpucu kullanma fonksiyonu
   void _useHint() {
     if (totalHints > 0 && selectedRow != -1 && selectedCol != -1 && !gameOver) {
       if (editable[selectedRow][selectedCol]) {
@@ -387,6 +407,7 @@ class _SudokuGameScreenState extends State<SudokuGameScreen> {
         if (_isPuzzleComplete()) {
           gameOver = true;
           gameWon = true;
+          _timer?.cancel();
           _calculateFinalScore();
           _saveProgress();
           _showVictoryDialog();
@@ -397,9 +418,7 @@ class _SudokuGameScreenState extends State<SudokuGameScreen> {
     }
   }
 
-  // 🎬 İpucu için Reklam Dialog'u
   void _showWatchAdForHintDialog() {
-    final local = AppLocalizations(widget.currentLanguage);
     final bool isTurkish = widget.currentLanguage == 'tr';
     
     showDialog(
@@ -508,14 +527,12 @@ class _SudokuGameScreenState extends State<SudokuGameScreen> {
     );
   }
 
-  // 🎬 YENİ: Ekstra Can için Reklam Dialog'u
   void _showWatchAdForExtraLifeDialog() {
-    final local = AppLocalizations(widget.currentLanguage);
     final bool isTurkish = widget.currentLanguage == 'tr';
     
     showDialog(
       context: context,
-      barrierDismissible: false, // Kullanıcı kapatamasın
+      barrierDismissible: false,
       builder: (context) => AlertDialog(
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
         title: Column(
@@ -608,7 +625,6 @@ class _SudokuGameScreenState extends State<SudokuGameScreen> {
           TextButton(
             onPressed: () {
               Navigator.pop(context);
-              // Artık oyun bitti, game over dialog'unu göster
               setState(() {
                 gameOver = true;
                 gameWon = false;
@@ -645,9 +661,7 @@ class _SudokuGameScreenState extends State<SudokuGameScreen> {
     );
   }
 
-  // 🎬 İpucu için Reklam İzleme
   Future<void> _watchAdForHint() async {
-    final local = AppLocalizations(widget.currentLanguage);
     final bool isTurkish = widget.currentLanguage == 'tr';
 
     showDialog(
@@ -669,7 +683,6 @@ class _SudokuGameScreenState extends State<SudokuGameScreen> {
       ),
     );
 
-    // 🎬 TODO: Google AdMob entegrasyonu buraya gelecek
     await Future.delayed(const Duration(seconds: 2));
     Navigator.pop(context);
     
@@ -708,9 +721,7 @@ class _SudokuGameScreenState extends State<SudokuGameScreen> {
     }
   }
 
-  // 🎬 YENİ: Ekstra Can için Reklam İzleme
   Future<void> _watchAdForExtraLife() async {
-    final local = AppLocalizations(widget.currentLanguage);
     final bool isTurkish = widget.currentLanguage == 'tr';
 
     showDialog(
@@ -732,17 +743,15 @@ class _SudokuGameScreenState extends State<SudokuGameScreen> {
       ),
     );
 
-    // 🎬 TODO: Google AdMob entegrasyonu buraya gelecek
     await Future.delayed(const Duration(seconds: 2));
     Navigator.pop(context);
     
     await Future.delayed(const Duration(seconds: 2));
 
-    // Ekstra can ver ve oyuna devam et
     setState(() {
       extraLives++;
-      hasUsedExtraLife = true; // Bu levelde artık extra life kullandı
-      mistakes = 2; // Hata sayısını 2'ye düşür (1 hata hakkı daha)
+      hasUsedExtraLife = true;
+      mistakes = 2;
     });
 
     if (mounted) {
@@ -994,6 +1003,7 @@ class _SudokuGameScreenState extends State<SudokuGameScreen> {
 
   @override
   Widget build(BuildContext context) {
+    SystemChrome.setPreferredOrientations([DeviceOrientation.portraitUp]);
     final local = AppLocalizations(widget.currentLanguage);
 
     return Scaffold(
@@ -1024,7 +1034,7 @@ class _SudokuGameScreenState extends State<SudokuGameScreen> {
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.spaceAround,
                 children: [
-                  StatBox(label: local.translate('score'), value: '$score', icon: Icons.emoji_events),
+                  StatBox(label: widget.currentLanguage == 'tr' ? 'Süre' : 'Time', value: _elapsedTime, icon: Icons.timer),
                   StatBox(label: local.translate('mistakes'), value: '$mistakes/3', icon: Icons.close),
                   StatBox(label: local.translate('hints'), value: '$totalHints', icon: Icons.lightbulb),
                 ],

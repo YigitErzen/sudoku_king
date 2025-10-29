@@ -48,7 +48,7 @@ class HowToPlayScreen extends StatelessWidget {
                     const SizedBox(width: 16),
                     Expanded(
                       child: Text(
-                        isTurkish ? 'NASIL OYNANIR' : 'HOW TO PLAY?',
+                        isTurkish ? 'NASIL OYNANIR' : 'HOW TO PLAY',
                         style: const TextStyle(
                           fontSize: 28,
                           fontWeight: FontWeight.bold,
