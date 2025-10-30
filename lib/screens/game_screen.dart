@@ -38,11 +38,10 @@ class _SudokuGameScreenState extends State<SudokuGameScreen> {
   int mistakes = 0;
   int hintsUsed = 0;
   int extraHints = 0;
-  int extraLives = 0;
-  bool hasUsedExtraLife = false;
   late DateTime startTime;
   bool gameOver = false;
   bool gameWon = false;
+  late Random _random;
   
   Timer? _timer;
   String _elapsedTime = "00:00";
@@ -91,6 +90,7 @@ class _SudokuGameScreenState extends State<SudokuGameScreen> {
   void initState() {
     super.initState();
     SystemChrome.setPreferredOrientations([DeviceOrientation.portraitUp]);
+    _random = Random(widget.level);
     startTime = DateTime.now();
     _generatePuzzle();
     _startTimer();
@@ -122,39 +122,44 @@ class _SudokuGameScreenState extends State<SudokuGameScreen> {
     isCorrect = List.generate(9, (_) => List.generate(9, (_) => true));
     isHint = List.generate(9, (_) => List.generate(9, (_) => false));
 
-    Random random = Random(widget.level);
-    Set<int> removedCells = {};
-    while (removedCells.length < emptyCells) {
-      int cell = random.nextInt(81);
-      if (!removedCells.contains(cell)) {
-        removedCells.add(cell);
-        int row = cell ~/ 9;
-        int col = cell % 9;
-        board[row][col] = 0;
-        editable[row][col] = true;
-      }
-    }
+    _removeNumbers();
   }
 
   List<List<int>> _generateCompleteSudoku() {
     List<List<int>> grid = List.generate(9, (_) => List.filled(9, 0));
-    Random random = Random(widget.level * 7);
-
-    List<int> nums = List.generate(9, (i) => i + 1);
-    nums.shuffle(random);
-    for (int i = 0; i < 9; i++) {
-      grid[0][i] = nums[i];
+    
+    // Önce diagonal 3x3 kutularını doldur (bunlar birbirinden bağımsız)
+    for (int box = 0; box < 3; box++) {
+      _fillBox(grid, box * 3, box * 3);
     }
-
+    
+    // Sonra kalan hücreleri çöz
     _solveSudoku(grid);
     return grid;
+  }
+
+  // 3x3 kutuyu rastgele sayılarla doldur
+  void _fillBox(List<List<int>> grid, int startRow, int startCol) {
+    List<int> nums = List.generate(9, (i) => i + 1);
+    nums.shuffle(_random);
+    
+    int index = 0;
+    for (int i = 0; i < 3; i++) {
+      for (int j = 0; j < 3; j++) {
+        grid[startRow + i][startCol + j] = nums[index++];
+      }
+    }
   }
 
   bool _solveSudoku(List<List<int>> grid) {
     for (int row = 0; row < 9; row++) {
       for (int col = 0; col < 9; col++) {
         if (grid[row][col] == 0) {
-          for (int num = 1; num <= 9; num++) {
+          // Sayıları rastgele dene (her puzzle farklı olsun)
+          List<int> numbers = List.generate(9, (i) => i + 1);
+          numbers.shuffle(_random);
+          
+          for (int num in numbers) {
             if (_isValidMove(grid, row, col, num)) {
               grid[row][col] = num;
               if (_solveSudoku(grid)) return true;
@@ -169,9 +174,17 @@ class _SudokuGameScreenState extends State<SudokuGameScreen> {
   }
 
   bool _isValidMove(List<List<int>> grid, int row, int col, int num) {
+    // Satır kontrolü
     for (int i = 0; i < 9; i++) {
-      if (grid[row][i] == num || grid[i][col] == num) return false;
+      if (grid[row][i] == num) return false;
     }
+    
+    // Sütun kontrolü
+    for (int i = 0; i < 9; i++) {
+      if (grid[i][col] == num) return false;
+    }
+    
+    // 3x3 kutu kontrolü
     int startRow = (row ~/ 3) * 3;
     int startCol = (col ~/ 3) * 3;
     for (int i = 0; i < 3; i++) {
@@ -179,7 +192,31 @@ class _SudokuGameScreenState extends State<SudokuGameScreen> {
         if (grid[startRow + i][startCol + j] == num) return false;
       }
     }
+    
     return true;
+  }
+
+  void _removeNumbers() {
+    int cellsToRemove = emptyCells;
+    List<List<int>> positions = [];
+    
+    // Tüm pozisyonları listeye ekle
+    for (int i = 0; i < 9; i++) {
+      for (int j = 0; j < 9; j++) {
+        positions.add([i, j]);
+      }
+    }
+    
+    // Pozisyonları karıştır
+    positions.shuffle(_random);
+    
+    // Rastgele pozisyonlardan sayıları çıkar
+    for (int i = 0; i < cellsToRemove && i < positions.length; i++) {
+      int row = positions[i][0];
+      int col = positions[i][1];
+      board[row][col] = 0;
+      editable[row][col] = true;
+    }
   }
 
   void _selectCell(int row, int col) {
@@ -205,20 +242,7 @@ class _SudokuGameScreenState extends State<SudokuGameScreen> {
           mistakes++;
           
           if (mistakes >= 3) {
-            if (extraLives > 0) {
-              _useExtraLife();
-              return;
-            }
-            
-            if (!hasUsedExtraLife) {
-              _showWatchAdForExtraLifeDialog();
-              return;
-            }
-            
-            gameOver = true;
-            gameWon = false;
-            _timer?.cancel();
-            _showGameOverDialog();
+            _showWatchAdForExtraLifeDialog();
             return;
           }
         }
@@ -233,41 +257,6 @@ class _SudokuGameScreenState extends State<SudokuGameScreen> {
         }
       });
     }
-  }
-
-  void _useExtraLife() {
-    setState(() {
-      extraLives--;
-      mistakes = 2;
-    });
-    
-    final bool isTurkish = widget.currentLanguage == 'tr';
-    
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Row(
-          children: [
-            Icon(Icons.favorite, color: Colors.white),
-            const SizedBox(width: 12),
-            Expanded(
-              child: Text(
-                isTurkish 
-                    ? '💖 Ekstra Can Kullanıldı! 1 Hata Hakkı Daha!' 
-                    : '💖 Extra Life Used! 1 More Mistake Allowed!',
-                style: const TextStyle(
-                  fontSize: 16,
-                  fontWeight: FontWeight.bold,
-                ),
-              ),
-            ),
-          ],
-        ),
-        backgroundColor: Colors.pink,
-        duration: const Duration(seconds: 2),
-        behavior: SnackBarBehavior.floating,
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
-      ),
-    );
   }
 
   int _calculateBasePoints(int row, int col) {
@@ -749,9 +738,7 @@ class _SudokuGameScreenState extends State<SudokuGameScreen> {
     await Future.delayed(const Duration(seconds: 2));
 
     setState(() {
-      extraLives++;
-      hasUsedExtraLife = true;
-      mistakes = 2;
+      mistakes--;
     });
 
     if (mounted) {
@@ -1140,7 +1127,7 @@ class _SudokuGameScreenState extends State<SudokuGameScreen> {
                       ),
                     ],
                   ),
-                  const SizedBox(height: 80),
+                  const SizedBox(height: 8),
                 ],
               ),
             ),
