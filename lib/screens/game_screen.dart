@@ -46,6 +46,32 @@ class _SudokuGameScreenState extends State<SudokuGameScreen> {
   Timer? _timer;
   String _elapsedTime = "00:00";
 
+  // Temel Sudoku template'leri
+  static const List<List<List<int>>> _templates = [
+    [
+      [1, 2, 3, 4, 5, 6, 7, 8, 9],
+      [4, 5, 6, 7, 8, 9, 1, 2, 3],
+      [7, 8, 9, 1, 2, 3, 4, 5, 6],
+      [2, 3, 4, 5, 6, 7, 8, 9, 1],
+      [5, 6, 7, 8, 9, 1, 2, 3, 4],
+      [8, 9, 1, 2, 3, 4, 5, 6, 7],
+      [3, 4, 5, 6, 7, 8, 9, 1, 2],
+      [6, 7, 8, 9, 1, 2, 3, 4, 5],
+      [9, 1, 2, 3, 4, 5, 6, 7, 8],
+    ],
+    [
+      [1, 4, 7, 2, 5, 8, 3, 6, 9],
+      [2, 5, 8, 3, 6, 9, 1, 4, 7],
+      [3, 6, 9, 1, 4, 7, 2, 5, 8],
+      [4, 7, 1, 5, 8, 2, 6, 9, 3],
+      [5, 8, 2, 6, 9, 3, 4, 7, 1],
+      [6, 9, 3, 4, 7, 1, 5, 8, 2],
+      [7, 1, 4, 8, 2, 5, 9, 3, 6],
+      [8, 2, 5, 9, 3, 6, 7, 1, 4],
+      [9, 3, 6, 7, 1, 4, 8, 2, 5],
+    ],
+  ];
+
   Color get difficultyColor {
     switch (widget.difficulty.toLowerCase()) {
       case 'easy':
@@ -116,107 +142,158 @@ class _SudokuGameScreenState extends State<SudokuGameScreen> {
   }
 
   void _generatePuzzle() {
-    solution = _generateCompleteSudoku();
+    // Template'lerden birini seç
+    int templateIndex = _random.nextInt(_templates.length);
+    var template = _templates[templateIndex];
+    
+    // Template'i kopyala
+    solution = template.map((row) => List<int>.from(row)).toList();
+    
+    // Sayıları permute et (her level farklı olsun)
+    _permuteNumbers();
+    
+    // Satırları shuffle et (kutu içinde)
+    _shuffleRows();
+    
+    // Sütunları shuffle et (kutu içinde)
+    _shuffleColumns();
+    
+    // Board'u kopyala
     board = solution.map((row) => List<int>.from(row)).toList();
     editable = List.generate(9, (_) => List.generate(9, (_) => false));
     isCorrect = List.generate(9, (_) => List.generate(9, (_) => true));
     isHint = List.generate(9, (_) => List.generate(9, (_) => false));
 
-    _removeNumbers();
+    // Sayıları dengeli şekilde çıkar
+    _removeNumbersBalanced();
   }
 
-  List<List<int>> _generateCompleteSudoku() {
-    List<List<int>> grid = List.generate(9, (_) => List.filled(9, 0));
+  void _permuteNumbers() {
+    // 1-9 arası sayıları karıştır
+    List<int> perm = List.generate(9, (i) => i + 1);
+    perm.shuffle(_random);
     
-    // Önce diagonal 3x3 kutularını doldur (bunlar birbirinden bağımsız)
-    for (int box = 0; box < 3; box++) {
-      _fillBox(grid, box * 3, box * 3);
-    }
-    
-    // Sonra kalan hücreleri çöz
-    _solveSudoku(grid);
-    return grid;
-  }
-
-  // 3x3 kutuyu rastgele sayılarla doldur
-  void _fillBox(List<List<int>> grid, int startRow, int startCol) {
-    List<int> nums = List.generate(9, (i) => i + 1);
-    nums.shuffle(_random);
-    
-    int index = 0;
-    for (int i = 0; i < 3; i++) {
-      for (int j = 0; j < 3; j++) {
-        grid[startRow + i][startCol + j] = nums[index++];
+    // Tüm grid'i permute et
+    for (int i = 0; i < 9; i++) {
+      for (int j = 0; j < 9; j++) {
+        solution[i][j] = perm[solution[i][j] - 1];
       }
     }
   }
 
-  bool _solveSudoku(List<List<int>> grid) {
-    for (int row = 0; row < 9; row++) {
-      for (int col = 0; col < 9; col++) {
-        if (grid[row][col] == 0) {
-          // Sayıları rastgele dene (her puzzle farklı olsun)
-          List<int> numbers = List.generate(9, (i) => i + 1);
-          numbers.shuffle(_random);
-          
-          for (int num in numbers) {
-            if (_isValidMove(grid, row, col, num)) {
-              grid[row][col] = num;
-              if (_solveSudoku(grid)) return true;
-              grid[row][col] = 0;
-            }
-          }
-          return false;
+  void _shuffleRows() {
+    // Her 3'lük satır grubunu kendi içinde karıştır
+    for (int block = 0; block < 3; block++) {
+      List<int> rows = [0, 1, 2];
+      rows.shuffle(_random);
+      
+      List<List<int>> temp = [];
+      for (int r in rows) {
+        temp.add(List<int>.from(solution[block * 3 + r]));
+      }
+      
+      for (int i = 0; i < 3; i++) {
+        solution[block * 3 + i] = temp[i];
+      }
+    }
+  }
+
+  void _shuffleColumns() {
+    // Her 3'lük sütun grubunu kendi içinde karıştır
+    for (int block = 0; block < 3; block++) {
+      List<int> cols = [0, 1, 2];
+      cols.shuffle(_random);
+      
+      List<List<int>> temp = List.generate(9, (_) => List.filled(3, 0));
+      
+      for (int i = 0; i < 9; i++) {
+        for (int j = 0; j < 3; j++) {
+          temp[i][j] = solution[i][block * 3 + cols[j]];
+        }
+      }
+      
+      for (int i = 0; i < 9; i++) {
+        for (int j = 0; j < 3; j++) {
+          solution[i][block * 3 + j] = temp[i][j];
         }
       }
     }
-    return true;
+  }
+
+  void _removeNumbersBalanced() {
+    int target = emptyCells;
+    int removed = 0;
+    
+    // Her 3x3 kutudan dengeli sayıda hücre çıkar
+    int perBox = (target / 9).ceil();
+    
+    for (int boxRow = 0; boxRow < 3; boxRow++) {
+      for (int boxCol = 0; boxCol < 3; boxCol++) {
+        List<List<int>> boxCells = [];
+        
+        for (int i = 0; i < 3; i++) {
+          for (int j = 0; j < 3; j++) {
+            int row = boxRow * 3 + i;
+            int col = boxCol * 3 + j;
+            boxCells.add([row, col]);
+          }
+        }
+        
+        boxCells.shuffle(_random);
+        
+        int toRemove = min(perBox, target - removed);
+        for (int i = 0; i < toRemove && i < boxCells.length; i++) {
+          int row = boxCells[i][0];
+          int col = boxCells[i][1];
+          board[row][col] = 0;
+          editable[row][col] = true;
+          removed++;
+        }
+        
+        if (removed >= target) break;
+      }
+      if (removed >= target) break;
+    }
+    
+    // Kalan hücreleri rastgele çıkar
+    if (removed < target) {
+      List<List<int>> remaining = [];
+      for (int i = 0; i < 9; i++) {
+        for (int j = 0; j < 9; j++) {
+          if (board[i][j] != 0) {
+            remaining.add([i, j]);
+          }
+        }
+      }
+      remaining.shuffle(_random);
+      
+      for (int i = 0; i < (target - removed) && i < remaining.length; i++) {
+        int row = remaining[i][0];
+        int col = remaining[i][1];
+        board[row][col] = 0;
+        editable[row][col] = true;
+      }
+    }
   }
 
   bool _isValidMove(List<List<int>> grid, int row, int col, int num) {
-    // Satır kontrolü
     for (int i = 0; i < 9; i++) {
       if (grid[row][i] == num) return false;
     }
     
-    // Sütun kontrolü
     for (int i = 0; i < 9; i++) {
       if (grid[i][col] == num) return false;
     }
     
-    // 3x3 kutu kontrolü
-    int startRow = (row ~/ 3) * 3;
-    int startCol = (col ~/ 3) * 3;
+    int boxRow = (row ~/ 3) * 3;
+    int boxCol = (col ~/ 3) * 3;
     for (int i = 0; i < 3; i++) {
       for (int j = 0; j < 3; j++) {
-        if (grid[startRow + i][startCol + j] == num) return false;
+        if (grid[boxRow + i][boxCol + j] == num) return false;
       }
     }
     
     return true;
-  }
-
-  void _removeNumbers() {
-    int cellsToRemove = emptyCells;
-    List<List<int>> positions = [];
-    
-    // Tüm pozisyonları listeye ekle
-    for (int i = 0; i < 9; i++) {
-      for (int j = 0; j < 9; j++) {
-        positions.add([i, j]);
-      }
-    }
-    
-    // Pozisyonları karıştır
-    positions.shuffle(_random);
-    
-    // Rastgele pozisyonlardan sayıları çıkar
-    for (int i = 0; i < cellsToRemove && i < positions.length; i++) {
-      int row = positions[i][0];
-      int col = positions[i][1];
-      board[row][col] = 0;
-      editable[row][col] = true;
-    }
   }
 
   void _selectCell(int row, int col) {
